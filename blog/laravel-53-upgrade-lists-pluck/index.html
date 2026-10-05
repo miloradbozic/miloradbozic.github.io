@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>Upgrading to Laravel 5.3: where did lists() go? | Milorad Bozic</title>
+    <meta name="description" content="A small shim, a grep and a plan for removing a renamed method from a large codebase">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/laravel-53-upgrade-lists-pluck/">Upgrading to Laravel 5.3: where did lists() go?</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        February 26, 2017
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">php</span>
+        
+          <span class="badge bg-success">laravel</span>
+        
+          <span class="badge bg-success">upgrade</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>As promised in the last post, here are some notes from the Laravel 5.3 upgrade we did on the
+customer portal at work. The codebase is almost two years old, has grown three separate
+&ldquo;apps&rdquo; (customer area, back-office, partner tools) on subdomains, and was started on Laravel 5.0.
+So not a huge app, but big enough that &ldquo;just run the tests&rdquo; is not the whole story.</p>
+<p>Most of the upgrade guide went smoothly. One thing did not.</p>
+<h2 id="the-rename">The rename</h2>
+<p>In 5.2 <code>lists()</code> was deprecated in favor of <code>pluck()</code>. In 5.3 it is gone. That applies to
+collections, the query builder and the Eloquent builder. Code like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span>$options <span style="color:#f92672">=</span> $tariffs<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">lists</span>(<span style="color:#e6db74">&#39;name&#39;</span>, <span style="color:#e6db74">&#39;id&#39;</span>);
+</span></span></code></pre></div><p>now fails with <code>BadMethodCallException: Method lists does not exist.</code> The good news is that
+it fails loudly. The bad news is that you only find out where it happens when that line runs,
+and a lot of ours was in admin screens that nobody opens on a Tuesday.</p>
+<h2 id="step-1-a-shim-so-we-can-ship">Step 1: a shim, so we can ship</h2>
+<p>We didn&rsquo;t want to block the upgrade on touching dozens of files in parts of the app we don&rsquo;t know
+well. Laravel collections are <em>macroable</em>, so we can put the old name back as an alias:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#66d9ef">namespace</span> <span style="color:#a6e22e">App\Providers</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">use</span> <span style="color:#a6e22e">Illuminate\Support\ServiceProvider</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">use</span> <span style="color:#a6e22e">Illuminate\Database\Eloquent\Collection</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MacroServiceProvider</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">ServiceProvider</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">boot</span>()
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Temporary: alias for pluck(), removed in Laravel 5.3.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// Delete when nothing calls -&gt;lists() anymore.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">Collection</span><span style="color:#f92672">::</span><span style="color:#a6e22e">macro</span>(<span style="color:#e6db74">&#39;lists&#39;</span>, <span style="color:#66d9ef">function</span> ($value, $key <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">pluck</span>($value, $key);
+</span></span><span style="display:flex;"><span>        });
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Register it in <code>config/app.php</code> and the old calls on Eloquent collections work again.</p>
+<h2 id="the-catch-which-collection">The catch: which Collection?</h2>
+<p>This is what bit us a day later. There are two collection classes:</p>
+<ul>
+<li><code>Illuminate\Support\Collection</code>, the general one, which you get from <code>collect()</code>, and</li>
+<li><code>Illuminate\Database\Eloquent\Collection</code>, which extends it and is what you get from
+<code>Model::all()</code> or <code>-&gt;get()</code>.</li>
+</ul>
+<p>A macro registered on the Eloquent one does <strong>not</strong> exist on the base one. So
+<code>collect($array)-&gt;lists('x')</code> was still broken. And neither macro helps with
+<code>DB::table('contracts')-&gt;lists('id')</code> or <code>Contract::where(...)-&gt;lists('id')</code>, because those are
+builder calls, not collections.</p>
+<p>So the shim is a safety net for one class of calls, not a fix. Treat it like that.</p>
+<h2 id="step-2-actually-remove-the-old-calls">Step 2: actually remove the old calls</h2>
+<p>Finding them is easy:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>grep -rn -- <span style="color:#e6db74">&#34;-&gt;lists(&#34;</span> app/ resources/views/ | wc -l
+</span></span></code></pre></div><p>Fewer hits than I feared, but enough of them in places nobody tests by hand. The replacement is
+mechanical, since <code>pluck()</code> takes the same arguments in 5.3:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>grep -rl -- <span style="color:#e6db74">&#34;-&gt;lists(&#34;</span> app/ resources/views/ | xargs sed -i <span style="color:#e6db74">&#39;s/-&gt;lists(/-&gt;pluck(/g&#39;</span>
+</span></span></code></pre></div><p>I still read every diff before committing, because one hit was a method called <code>lists()</code> on one of
+our own classes that has nothing to do with Laravel. sed doesn&rsquo;t know that.</p>
+<p>One more behavior change to watch for: in 5.3, query builder <code>get()</code> returns a collection instead
+of an array. Code that did <code>DB::table(...)-&gt;pluck('id')</code> and then passed the result to
+<code>in_array()</code> or <code>array_merge()</code> started to misbehave. <code>-&gt;all()</code> or <code>-&gt;toArray()</code> at the boundary
+fixes it.</p>
+<h2 id="step-3-delete-the-shim">Step 3: delete the shim</h2>
+<p>Once the grep returns nothing, the macro goes away. I put a comment in the provider and created a
+ticket for it, otherwise &ldquo;temporary&rdquo; in a codebase means &ldquo;forever&rdquo;.</p>
+<h2 id="what-id-do-differently">What I&rsquo;d do differently</h2>
+<ul>
+<li>Run the grep <strong>before</strong> the upgrade, on the old version. <code>pluck()</code> already worked in 5.2, so the
+rename could have been its own small, boring PR, deployed separately.</li>
+<li>Make deprecation notices visible. They were in the docs and nobody looked at them, because
+nothing in the app complained.</li>
+<li>Have at least one smoke test that opens every admin page. It doesn&rsquo;t need to assert much;
+&ldquo;returns 200&rdquo; would have caught most of this.</li>
+</ul>
+<p>Upgrades are mostly not hard. They are just long, and the long tail is always in the code
+nobody is looking at.</p>
+
+          
+          
+            <div class="related-posts mt-4 py-3">
+              <h5>Related Posts</h5>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      January 15, 2017
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/redsys-card-payments-lessons/">Card payments with Redsys: trust the notification, not the redirect</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+            </div>
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>

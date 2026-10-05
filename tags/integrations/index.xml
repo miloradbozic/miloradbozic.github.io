@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>integrations on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/integrations/</link>
+    <description>Recent content in integrations on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 09 Apr 2017 18:40:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/integrations/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Keeping an OAuth2 integration alive with the Laravel scheduler</title>
+      <link>https://miloradbozic.github.io/blog/oauth2-token-keepalive-laravel-scheduler/</link>
+      <pubDate>Sun, 09 Apr 2017 18:40:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/oauth2-token-keepalive-laravel-scheduler/</guid>
+      <description>Our lead pipeline at work pushes every new sign-up into a marketing CRM (Infusionsoft) so the sales and marketing teams can follow up. It talks to the CRM&amp;rsquo;s REST API using OAuth2. That worked fine for weeks and then, one Monday morning, it didn&amp;rsquo;t: no new leads in the CRM since Saturday, and every API call failed with an invalid token error.
+Somebody had to log in to the CRM in a browser and authorize our app again.</description>
+    </item>
+    
+  </channel>
+</rss>

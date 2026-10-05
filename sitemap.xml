@@ -1,120 +1,57 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  
   <url>
-    <loc>https://example.com/</loc>
-    <lastmod>2021-02-16T22:52:39+01:00</lastmod>
+    <loc>https://miloradbozic.github.io/resume/</loc>
+    <lastmod>2026-10-05T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/</loc>
+    <lastmod>2017-04-09T18:40:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/</loc>
+    <lastmod>2017-04-09T18:40:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/integrations/</loc>
+    <lastmod>2017-04-09T18:40:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/oauth2-token-keepalive-laravel-scheduler/</loc>
+    <lastmod>2017-04-09T18:40:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/laravel/</loc>
+    <lastmod>2017-04-09T18:40:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/oauth2/</loc>
+    <lastmod>2017-04-09T18:40:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/php/</loc>
+    <lastmod>2017-04-09T18:40:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/</loc>
+    <lastmod>2017-04-09T18:40:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/upgrade/</loc>
+    <lastmod>2017-02-26T21:05:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/laravel-53-upgrade-lists-pluck/</loc>
+    <lastmod>2017-02-26T21:05:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/redsys-card-payments-lessons/</loc>
+    <lastmod>2017-01-15T19:20:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/payments/</loc>
+    <lastmod>2017-01-15T19:20:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/redsys/</loc>
+    <lastmod>2017-01-15T19:20:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/hello-world/</loc>
+    <lastmod>2016-12-27T10:54:24+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/java/</loc>
+    <lastmod>2016-12-27T10:54:24+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/categories/</loc>
+  </url><url>
+    <loc>https://miloradbozic.github.io/projects/</loc>
   </url>
-  
-  <url>
-    <loc>https://example.com/posts/my-first-post/</loc>
-    <lastmod>2021-02-16T22:52:39+01:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/posts/</loc>
-    <lastmod>2021-02-16T22:52:39+01:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/blog/</loc>
-    <lastmod>2019-03-11T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/categories/</loc>
-    <lastmod>2019-03-11T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/tags/css/</loc>
-    <lastmod>2019-03-11T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/tags/html/</loc>
-    <lastmod>2019-03-11T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/tags/markdown/</loc>
-    <lastmod>2019-03-11T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/blog/markdown-syntax/</loc>
-    <lastmod>2019-03-11T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/categories/syntax/</loc>
-    <lastmod>2019-03-11T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/tags/</loc>
-    <lastmod>2019-03-11T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/categories/themes/</loc>
-    <lastmod>2019-03-11T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/tags/privacy/</loc>
-    <lastmod>2019-03-10T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/blog/rich-content/</loc>
-    <lastmod>2019-03-10T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/tags/shortcodes/</loc>
-    <lastmod>2019-03-10T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/blog/placeholder-text/</loc>
-    <lastmod>2019-03-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/tags/text/</loc>
-    <lastmod>2019-03-09T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/blog/math-typesetting/</loc>
-    <lastmod>2019-03-08T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/tags/emoji/</loc>
-    <lastmod>2019-03-05T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/blog/emoji-support/</loc>
-    <lastmod>2019-03-05T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/projects/</loc>
-    <lastmod>2016-10-02T22:55:05-04:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/tags/projects/</loc>
-    <lastmod>2016-10-02T22:55:05-04:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://example.com/categories/projects/</loc>
-    <lastmod>2016-10-02T22:55:05-04:00</lastmod>
-  </url>
-  
 </urlset>

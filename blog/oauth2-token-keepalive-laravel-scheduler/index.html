@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>Keeping an OAuth2 integration alive with the Laravel scheduler | Milorad Bozic</title>
+    <meta name="description" content="Refresh token rotation, a cron job that pings an API on purpose, and the race condition hiding behind it">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/oauth2-token-keepalive-laravel-scheduler/">Keeping an OAuth2 integration alive with the Laravel scheduler</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        April 9, 2017
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">php</span>
+        
+          <span class="badge bg-success">laravel</span>
+        
+          <span class="badge bg-success">oauth2</span>
+        
+          <span class="badge bg-success">integrations</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>Our lead pipeline at work pushes every new sign-up into a marketing CRM (Infusionsoft) so the
+sales and marketing teams can follow up. It talks to the CRM&rsquo;s REST API using OAuth2. That
+worked fine for weeks and then, one Monday morning, it didn&rsquo;t: no new leads in the CRM since
+Saturday, and every API call failed with an invalid token error.</p>
+<p>Somebody had to log in to the CRM in a browser and authorize our app again. Then it happened
+again a few weeks later. This post is about why, and the small fix.</p>
+<h2 id="how-the-token-setup-works">How the token setup works</h2>
+<p>A one-time browser flow gives us two tokens:</p>
+<ul>
+<li>an <strong>access token</strong>, short lived, sent with every API call;</li>
+<li>a <strong>refresh token</strong>, used to get a new access token when the old one expires.</li>
+</ul>
+<p>We store both in a single row in the database. Before every API call the client checks whether
+the access token is expired and if so, refreshes it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span>$client<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">setToken</span>($stored<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">getToken</span>());
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> ($client<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">isTokenExpired</span>()) {
+</span></span><span style="display:flex;"><span>    $client<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">refreshAccessToken</span>();
+</span></span><span style="display:flex;"><span>    $stored<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">setToken</span>($client<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">getToken</span>())<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">save</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Two details make this fragile:</p>
+<ol>
+<li>The refresh token is <strong>single use</strong>. Each refresh returns a <em>new</em> refresh token and the old
+one stops working. If you refresh and fail to save the result, you&rsquo;re locked out.</li>
+<li>The integration only refreshes when there is traffic. Weekends and holidays mean fewer
+sign-ups, and if the tokens are left alone long enough they are no longer usable.</li>
+</ol>
+<h2 id="fix-1-a-keep-alive-command">Fix 1: a keep-alive command</h2>
+<p>The simple part: make sure there is always traffic. An Artisan command that refreshes if needed
+and then makes one cheap, harmless API call:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CrmKeepAlive</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">Command</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> $signature <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;crm:keep-alive&#39;</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> $description <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Refreshes the CRM OAuth token so it never expires unattended&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">handle</span>(<span style="color:#a6e22e">CrmTokenRepository</span> $tokens, <span style="color:#a6e22e">CrmClientFactory</span> $factory)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        $client <span style="color:#f92672">=</span> $factory<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">make</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        $tokens<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">refreshIfExpired</span>($client);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Any authenticated read works; we only care that the token is used.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        $client<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">contacts</span>()<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">findByEmail</span>(<span style="color:#e6db74">&#39;keepalive@example.com&#39;</span>, [<span style="color:#e6db74">&#39;Id&#39;</span>]);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">info</span>(<span style="color:#e6db74">&#39;CRM token OK&#39;</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>And in <code>app/Console/Kernel.php</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span>$schedule<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">command</span>(<span style="color:#e6db74">&#39;crm:keep-alive&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">hourly</span>();
+</span></span></code></pre></div><p>Hourly is overkill on purpose. It&rsquo;s one request, and it also works as a health check: if this
+command starts failing, we know before marketing does.</p>
+<h2 id="fix-2-the-race-you-create-by-fixing-1">Fix 2: the race you create by fixing 1</h2>
+<p>Now there are two independent things that may refresh the token at the same moment: the
+scheduled command, and a queue worker processing a lead. Because the refresh token is single
+use, that&rsquo;s a real problem:</p>
+<ol>
+<li>Worker and cron both read the same expired token.</li>
+<li>Worker refreshes, gets tokens B, saves them.</li>
+<li>Cron refreshes with token A, which is now invalid. Error.</li>
+<li>Or worse, the order flips and an older response overwrites a newer one.</li>
+</ol>
+<p>The fix is to make &ldquo;read, refresh, save&rdquo; one operation. We don&rsquo;t have Redis locks in this
+project, but we do have MySQL, and the token is a single row, so a row lock inside a transaction
+does the job:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">refreshIfExpired</span>(<span style="color:#a6e22e">CrmClient</span> $client)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">DB</span><span style="color:#f92672">::</span><span style="color:#a6e22e">transaction</span>(<span style="color:#66d9ef">function</span> () <span style="color:#66d9ef">use</span> ($client) {
+</span></span><span style="display:flex;"><span>        $row <span style="color:#f92672">=</span> <span style="color:#a6e22e">CrmToken</span><span style="color:#f92672">::</span><span style="color:#a6e22e">lockForUpdate</span>()<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">firstOrFail</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        $client<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">setToken</span>($row<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">getToken</span>());
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> ($client<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">isTokenExpired</span>()) {
+</span></span><span style="display:flex;"><span>            $client<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">refreshAccessToken</span>();
+</span></span><span style="display:flex;"><span>            $row<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">setToken</span>($client<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">getToken</span>())<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">save</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    });
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>The second process waits on the lock, then reads the token the first one <em>just saved</em>, sees it
+isn&rsquo;t expired, and moves on. Every code path that refreshes goes through this one method now.
+While moving things around I also found we were saving the token twice in a row in one place,
+once as raw JSON and once through the setter. Harmless, but a sign that nobody was quite sure
+where the token&rsquo;s state lived.</p>
+<p>Also <code>withoutOverlapping()</code> on the scheduled command, so a slow run can&rsquo;t stack up with the
+next one:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span>$schedule<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">command</span>(<span style="color:#e6db74">&#39;crm:keep-alive&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">hourly</span>()<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">withoutOverlapping</span>();
+</span></span></code></pre></div><h2 id="fix-3-fail-loudly">Fix 3: fail loudly</h2>
+<p>Last thing: when the refresh does fail, we used to log it and continue, and every lead after that
+failed quietly. Now a failed refresh sends an email to the team with a link to the re-authorize
+page. It shouldn&rsquo;t happen anymore, but if it does, it&rsquo;s minutes instead of a weekend.</p>
+<h2 id="takeaways">Takeaways</h2>
+<ul>
+<li>With rotating refresh tokens, a refresh is a write. Treat it like one: lock, refresh, save,
+commit.</li>
+<li>If a credential only stays valid while it&rsquo;s used, use it on a schedule, not only when users
+happen to show up.</li>
+<li>A keep-alive job doubles as the cheapest monitoring you will ever set up.</li>
+</ul>
+
+          
+          
+            <div class="related-posts mt-4 py-3">
+              <h5>Related Posts</h5>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      February 26, 2017
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/laravel-53-upgrade-lists-pluck/">Upgrading to Laravel 5.3: where did lists() go?</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      January 15, 2017
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/redsys-card-payments-lessons/">Card payments with Redsys: trust the notification, not the redirect</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+            </div>
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>

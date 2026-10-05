@@ -1,64 +1,61 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Chris Turner</title>
-    <link>https://example.com/</link>
-    <description>Recent content on Chris Turner</description>
+    <title>Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/</link>
+    <description>Recent content on Milorad Bozic</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Tue, 16 Feb 2021 22:52:39 +0100</lastBuildDate><atom:link href="https://example.com/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 09 Apr 2017 18:40:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>My First Post</title>
-      <link>https://example.com/posts/my-first-post/</link>
-      <pubDate>Tue, 16 Feb 2021 22:52:39 +0100</pubDate>
+      <title>Resume</title>
+      <link>https://miloradbozic.github.io/resume/</link>
+      <pubDate>Mon, 05 Oct 2026 00:00:00 +0000</pubDate>
       
-      <guid>https://example.com/posts/my-first-post/</guid>
-      <description>Hello!</description>
+      <guid>https://miloradbozic.github.io/resume/</guid>
+      <description>Senior Backend Engineer · Distributed Systems / Go &amp;amp; TypeScript / AI-Native
+Serbia (remote, CET) · Serbian / English / Spanish
+Senior backend engineer with 12+ years building large-scale distributed systems and multi-tenant SaaS. I design backend services end to end and own complex rewrites. Comfortable across Go, TypeScript/Node and Python. AI coding agents are my default daily workflow, and I&amp;rsquo;ve built agentic systems and LLM-context engines end to end.</description>
     </item>
     
     <item>
-      <title>Markdown Syntax Guide</title>
-      <link>https://example.com/blog/markdown-syntax/</link>
-      <pubDate>Mon, 11 Mar 2019 00:00:00 +0000</pubDate>
+      <title>Keeping an OAuth2 integration alive with the Laravel scheduler</title>
+      <link>https://miloradbozic.github.io/blog/oauth2-token-keepalive-laravel-scheduler/</link>
+      <pubDate>Sun, 09 Apr 2017 18:40:00 +0200</pubDate>
       
-      <guid>https://example.com/blog/markdown-syntax/</guid>
-      <description>&lt;p&gt;This article offers a sample of basic Markdown syntax that can be used in Hugo content files, also it shows whether basic HTML elements are decorated with CSS in a Hugo theme.&lt;/p&gt;</description>
+      <guid>https://miloradbozic.github.io/blog/oauth2-token-keepalive-laravel-scheduler/</guid>
+      <description>Our lead pipeline at work pushes every new sign-up into a marketing CRM (Infusionsoft) so the sales and marketing teams can follow up. It talks to the CRM&amp;rsquo;s REST API using OAuth2. That worked fine for weeks and then, one Monday morning, it didn&amp;rsquo;t: no new leads in the CRM since Saturday, and every API call failed with an invalid token error.
+Somebody had to log in to the CRM in a browser and authorize our app again.</description>
     </item>
     
     <item>
-      <title>Rich Content</title>
-      <link>https://example.com/blog/rich-content/</link>
-      <pubDate>Sun, 10 Mar 2019 00:00:00 +0000</pubDate>
+      <title>Upgrading to Laravel 5.3: where did lists() go?</title>
+      <link>https://miloradbozic.github.io/blog/laravel-53-upgrade-lists-pluck/</link>
+      <pubDate>Sun, 26 Feb 2017 21:05:00 +0100</pubDate>
       
-      <guid>https://example.com/blog/rich-content/</guid>
-      <description>&lt;p&gt;Hugo ships with several &lt;a href=&#34;https://gohugo.io/content-management/shortcodes/#use-hugos-built-in-shortcodes&#34;&gt;Built-in Shortcodes&lt;/a&gt; for rich content, along with a &lt;a href=&#34;https://gohugo.io/about/hugo-and-gdpr/&#34;&gt;Privacy Config&lt;/a&gt; and a set of Simple Shortcodes that enable static and no-JS versions of various social media embeds.&lt;/p&gt;</description>
+      <guid>https://miloradbozic.github.io/blog/laravel-53-upgrade-lists-pluck/</guid>
+      <description>As promised in the last post, here are some notes from the Laravel 5.3 upgrade we did on the customer portal at work. The codebase is almost two years old, has grown three separate &amp;ldquo;apps&amp;rdquo; (customer area, back-office, partner tools) on subdomains, and was started on Laravel 5.0. So not a huge app, but big enough that &amp;ldquo;just run the tests&amp;rdquo; is not the whole story.
+Most of the upgrade guide went smoothly.</description>
     </item>
     
     <item>
-      <title>Placeholder Text</title>
-      <link>https://example.com/blog/placeholder-text/</link>
-      <pubDate>Sat, 09 Mar 2019 00:00:00 +0000</pubDate>
+      <title>Card payments with Redsys: trust the notification, not the redirect</title>
+      <link>https://miloradbozic.github.io/blog/redsys-card-payments-lessons/</link>
+      <pubDate>Sun, 15 Jan 2017 19:20:00 +0100</pubDate>
       
-      <guid>https://example.com/blog/placeholder-text/</guid>
-      <description>&lt;p&gt;Lorem est tota propiore conpellat pectoribus de pectora summo.&lt;/p&gt;</description>
+      <guid>https://miloradbozic.github.io/blog/redsys-card-payments-lessons/</guid>
+      <description>Over the last couple of months at HolaLuz I worked on letting customers pay overdue electricity invoices by card, directly from the customer area and from our internal back-office tool. In Spain this almost always means Redsys, the payment gateway behind most bank &amp;ldquo;TPV virtual&amp;rdquo; contracts.
+The integration itself is not complicated, and there are decent PHP libraries for it. But a few things only became clear once real money started moving, so I&amp;rsquo;m writing them down while I still remember.</description>
     </item>
     
     <item>
-      <title>Math Typesetting</title>
-      <link>https://example.com/blog/math-typesetting/</link>
-      <pubDate>Fri, 08 Mar 2019 00:00:00 +0000</pubDate>
+      <title>Hello world!</title>
+      <link>https://miloradbozic.github.io/blog/hello-world/</link>
+      <pubDate>Tue, 27 Dec 2016 10:54:24 +0200</pubDate>
       
-      <guid>https://example.com/blog/math-typesetting/</guid>
-      <description>&lt;p&gt;Mathematical notation in a Hugo project can be enabled by using third party JavaScript libraries.&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Emoji Support</title>
-      <link>https://example.com/blog/emoji-support/</link>
-      <pubDate>Tue, 05 Mar 2019 00:00:00 +0000</pubDate>
-      
-      <guid>https://example.com/blog/emoji-support/</guid>
-      <description>&lt;p&gt;Emoji can be enabled in a Hugo project in a number of ways.&lt;/p&gt;</description>
+      <guid>https://miloradbozic.github.io/blog/hello-world/</guid>
+      <description>Here is a little Java function to welcome you:
+public static void main(String [] args) { System.out.println(&amp;#34;Hello there!&amp;#34;); } </description>
     </item>
     
   </channel>

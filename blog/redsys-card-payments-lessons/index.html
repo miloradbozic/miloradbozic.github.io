@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>Card payments with Redsys: trust the notification, not the redirect | Milorad Bozic</title>
+    <meta name="description" content="What I learned wiring a Spanish bank TPV into a customer portal for paying overdue invoices">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/redsys-card-payments-lessons/">Card payments with Redsys: trust the notification, not the redirect</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        January 15, 2017
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">php</span>
+        
+          <span class="badge bg-success">laravel</span>
+        
+          <span class="badge bg-success">payments</span>
+        
+          <span class="badge bg-success">redsys</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>Over the last couple of months at <a href="https://www.holaluz.com">HolaLuz</a> I worked on letting
+customers pay overdue electricity invoices by card, directly from the customer area and from
+our internal back-office tool. In Spain this almost always means <strong>Redsys</strong>, the payment gateway
+behind most bank &ldquo;TPV virtual&rdquo; contracts.</p>
+<p>The integration itself is not complicated, and there are decent PHP libraries for it. But a few
+things only became clear once real money started moving, so I&rsquo;m writing them down while I
+still remember.</p>
+<h2 id="how-the-flow-works">How the flow works</h2>
+<p>Very short version:</p>
+<ol>
+<li>Your backend builds a set of <em>merchant parameters</em> (amount, order number, currency,
+terminal, the URLs Redsys should call back), Base64-encodes them as JSON and signs them
+with a key derived from your secret and the order number (3DES + HMAC-SHA256).</li>
+<li>The browser POSTs a form with <code>Ds_MerchantParameters</code>, <code>Ds_Signature</code> and
+<code>Ds_SignatureVersion</code> to Redsys.</li>
+<li>The customer types the card details on the bank&rsquo;s page.</li>
+<li>Redsys does two things, independently:
+<ul>
+<li>redirects the <strong>browser</strong> to your <code>URL_OK</code> or <code>URL_KO</code>, and</li>
+<li>makes a <strong>server-to-server</strong> POST to your notification URL (<code>urlMerchant</code>) with
+the signed result.</li>
+</ul>
+</li>
+</ol>
+<p>The important word is <em>independently</em>.</p>
+<h2 id="lesson-1-the-redirect-is-ux-the-notification-is-the-truth">Lesson 1: the redirect is UX, the notification is the truth</h2>
+<p>My first version marked the payment as done on the OK redirect. It looked fine in testing.
+In production it isn&rsquo;t, because:</p>
+<ul>
+<li>the customer can close the tab right after paying, so you never see the redirect;</li>
+<li>anyone can open <code>/tpv/ok</code> in a browser;</li>
+<li>the notification can arrive <em>before</em> or <em>after</em> the redirect.</li>
+</ul>
+<p>So now the OK page only says &ldquo;thanks, we&rsquo;re processing your payment&rdquo;. The only thing that
+changes the state of a payment is the notification, and only after the signature is verified:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">notification</span>(<span style="color:#a6e22e">Request</span> $request)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    $params    <span style="color:#f92672">=</span> $request<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#39;Ds_MerchantParameters&#39;</span>);
+</span></span><span style="display:flex;"><span>    $signature <span style="color:#f92672">=</span> $request<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#39;Ds_Signature&#39;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    $data  <span style="color:#f92672">=</span> <span style="color:#a6e22e">json_decode</span>(<span style="color:#a6e22e">base64_decode</span>(<span style="color:#a6e22e">strtr</span>($params, <span style="color:#e6db74">&#39;-_&#39;</span>, <span style="color:#e6db74">&#39;+/&#39;</span>)), <span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>    $order <span style="color:#f92672">=</span> $data[<span style="color:#e6db74">&#39;Ds_Order&#39;</span>];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    $expected <span style="color:#f92672">=</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">redsys</span><span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">createMerchantSignatureNotif</span>($this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">key</span>, $params);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">hash_equals</span>($expected, $signature)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Log</span><span style="color:#f92672">::</span><span style="color:#a6e22e">warning</span>(<span style="color:#e6db74">&#39;TPV notification with invalid signature&#39;</span>, [<span style="color:#e6db74">&#39;order&#39;</span> <span style="color:#f92672">=&gt;</span> $order]);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">response</span>(<span style="color:#e6db74">&#39;&#39;</span>, <span style="color:#ae81ff">400</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    $payment <span style="color:#f92672">=</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">payments</span><span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">findByOrder</span>($order);
+</span></span><span style="display:flex;"><span>    $payment<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">markFromResponse</span>((<span style="color:#a6e22e">int</span>) $data[<span style="color:#e6db74">&#39;Ds_Response&#39;</span>], $params, $signature);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">response</span>(<span style="color:#e6db74">&#39;&#39;</span>, <span style="color:#ae81ff">200</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>Ds_Response</code> between <code>0000</code> and <code>0099</code> means authorized; everything else is some kind of
+denial. Don&rsquo;t forget that the comparison is numeric, the value comes as a zero-padded string.</p>
+<h2 id="lesson-2-store-the-signed-request-and-the-signed-response">Lesson 2: store the signed request and the signed response</h2>
+<p>When a customer calls support saying &ldquo;I paid, but the portal says I still owe money&rdquo;, you want
+to answer that from data, not from guessing. We added columns to the payments table for the
+exact <code>params</code>, <code>signature</code> and <code>version</code> we sent, and the exact ones we received back:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#a6e22e">Schema</span><span style="color:#f92672">::</span><span style="color:#a6e22e">table</span>(<span style="color:#e6db74">&#39;payments&#39;</span>, <span style="color:#66d9ef">function</span> (<span style="color:#a6e22e">Blueprint</span> $table) {
+</span></span><span style="display:flex;"><span>    $table<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">string</span>(<span style="color:#e6db74">&#39;request_version&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">nullable</span>();
+</span></span><span style="display:flex;"><span>    $table<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">text</span>(<span style="color:#e6db74">&#39;request_params&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">nullable</span>();
+</span></span><span style="display:flex;"><span>    $table<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">string</span>(<span style="color:#e6db74">&#39;request_signature&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">nullable</span>();
+</span></span><span style="display:flex;"><span>    $table<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">string</span>(<span style="color:#e6db74">&#39;response_code&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">nullable</span>();
+</span></span><span style="display:flex;"><span>    $table<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">string</span>(<span style="color:#e6db74">&#39;response_version&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">nullable</span>();
+</span></span><span style="display:flex;"><span>    $table<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">text</span>(<span style="color:#e6db74">&#39;response_params&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">nullable</span>();
+</span></span><span style="display:flex;"><span>    $table<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">string</span>(<span style="color:#e6db74">&#39;response_signature&#39;</span>)<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">nullable</span>();
+</span></span><span style="display:flex;"><span>});
+</span></span></code></pre></div><p>It is a bit of duplication, but it already paid off twice. Base64 JSON is cheap to keep and
+trivial to decode when you need it.</p>
+<h2 id="lesson-3-one-invoice-many-attempts">Lesson 3: one invoice, many attempts</h2>
+<p>A customer can try to pay the same invoice three times (wrong CVV, card blocked, then success).
+Redsys does not allow reusing an order number, so every attempt needs a new one, while the
+payment still belongs to the same invoice reference.</p>
+<p>My first approach was <code>rand(1000, 99999999)</code> for the order number, which &ldquo;works&rdquo; until it
+doesn&rsquo;t. Redsys wants 4 to 12 characters with the first 4 being digits, and two attempts
+colliding is a real (if unlikely) problem. Something derived from the payment id plus an attempt
+counter is boring and safe.</p>
+<p>The other side of this: <strong>check if the invoice is already paid before you build the form.</strong> We
+ask the ERP for the outstanding amount first and short-circuit with &ldquo;already paid&rdquo; instead of
+letting someone pay twice.</p>
+<h2 id="lesson-4-dont-mock-the-erp-inside-the-service-class">Lesson 4: don&rsquo;t mock the ERP inside the service class</h2>
+<p>Our invoices and payments live in the ERP, which we talk to via SOAP web services. While building
+the payment screen the ERP test environment was not always available, so I did the quick thing:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">getAmount</span>($reference)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">44</span>; <span style="color:#75715e">// TODO remove after testing
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// ... real SOAP call below
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p>You can guess how comfortable I was deploying that. The fix was already there in the code: the
+service implements an interface and Laravel&rsquo;s container resolves it. So the fake belongs in its
+own class, bound only where we want it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#75715e">// AppServiceProvider::register()
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">config</span>(<span style="color:#e6db74">&#39;services.erp.fake&#39;</span>)) {
+</span></span><span style="display:flex;"><span>    $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">app</span><span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">bind</span>(<span style="color:#a6e22e">PaymentGatewayInterface</span><span style="color:#f92672">::</span><span style="color:#a6e22e">class</span>, <span style="color:#a6e22e">FakeErpPayments</span><span style="color:#f92672">::</span><span style="color:#a6e22e">class</span>);
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">app</span><span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">bind</span>(<span style="color:#a6e22e">PaymentGatewayInterface</span><span style="color:#f92672">::</span><span style="color:#a6e22e">class</span>, <span style="color:#a6e22e">ErpPayments</span><span style="color:#f92672">::</span><span style="color:#a6e22e">class</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>The fake returns predictable data, tests use it, and the real class never contains a stray
+<code>return 44;</code> again.</p>
+<h2 id="summary">Summary</h2>
+<ul>
+<li>The browser redirect is for the customer; the signed server notification is for your database.</li>
+<li>Verify the signature with <code>hash_equals</code>, always.</li>
+<li>Persist what you sent and what you received.</li>
+<li>New order number per attempt, same invoice reference.</li>
+<li>Fakes go behind interfaces, not above the real code.</li>
+</ul>
+<p>Next time I&rsquo;ll probably write about the Laravel 5.3 upgrade we are planning, which I&rsquo;m sure will
+give me something to complain about.</p>
+
+          
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>

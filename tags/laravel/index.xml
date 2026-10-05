@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Blogs on Milorad Bozic</title>
-    <link>https://miloradbozic.github.io/blog/</link>
-    <description>Recent content in Blogs on Milorad Bozic</description>
+    <title>laravel on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/laravel/</link>
+    <description>Recent content in laravel on Milorad Bozic</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Sun, 09 Apr 2017 18:40:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/blog/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 09 Apr 2017 18:40:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/laravel/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Keeping an OAuth2 integration alive with the Laravel scheduler</title>
       <link>https://miloradbozic.github.io/blog/oauth2-token-keepalive-laravel-scheduler/</link>
@@ -35,16 +35,6 @@ Most of the upgrade guide went smoothly.</description>
       <guid>https://miloradbozic.github.io/blog/redsys-card-payments-lessons/</guid>
       <description>Over the last couple of months at HolaLuz I worked on letting customers pay overdue electricity invoices by card, directly from the customer area and from our internal back-office tool. In Spain this almost always means Redsys, the payment gateway behind most bank &amp;ldquo;TPV virtual&amp;rdquo; contracts.
 The integration itself is not complicated, and there are decent PHP libraries for it. But a few things only became clear once real money started moving, so I&amp;rsquo;m writing them down while I still remember.</description>
-    </item>
-    
-    <item>
-      <title>Hello world!</title>
-      <link>https://miloradbozic.github.io/blog/hello-world/</link>
-      <pubDate>Tue, 27 Dec 2016 10:54:24 +0200</pubDate>
-      
-      <guid>https://miloradbozic.github.io/blog/hello-world/</guid>
-      <description>Here is a little Java function to welcome you:
-public static void main(String [] args) { System.out.println(&amp;#34;Hello there!&amp;#34;); } </description>
     </item>
     
   </channel>

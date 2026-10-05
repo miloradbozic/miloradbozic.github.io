@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>upgrade on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/upgrade/</link>
+    <description>Recent content in upgrade on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 26 Feb 2017 21:05:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/upgrade/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Upgrading to Laravel 5.3: where did lists() go?</title>
+      <link>https://miloradbozic.github.io/blog/laravel-53-upgrade-lists-pluck/</link>
+      <pubDate>Sun, 26 Feb 2017 21:05:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/laravel-53-upgrade-lists-pluck/</guid>
+      <description>As promised in the last post, here are some notes from the Laravel 5.3 upgrade we did on the customer portal at work. The codebase is almost two years old, has grown three separate &amp;ldquo;apps&amp;rdquo; (customer area, back-office, partner tools) on subdomains, and was started on Laravel 5.0. So not a huge app, but big enough that &amp;ldquo;just run the tests&amp;rdquo; is not the whole story.
+Most of the upgrade guide went smoothly.</description>
+    </item>
+    
+  </channel>
+</rss>
