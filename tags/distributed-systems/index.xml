@@ -6,7 +6,39 @@
     <description>Recent content in distributed-systems on Milorad Bozic</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Sun, 17 Dec 2017 17:00:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/distributed-systems/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 16 Dec 2018 19:00:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/distributed-systems/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Never lose an answer: offline-first answer saving for exams at sea</title>
+      <link>https://miloradbozic.github.io/blog/offline-first-answer-saving/</link>
+      <pubDate>Sun, 16 Dec 2018 19:00:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/offline-first-answer-saving/</guid>
+      <description>Back in May I wrote about what satellite internet on a ship means for an online exam. The rule I cared about most was: never lose an answer. The connection can go away at any point, for minutes, and the person taking the test should be able to keep going.
+This is how we&amp;rsquo;re approaching it. Not finished, but the shape is clear.
+Step 1: load the whole test up front When the attempt starts, the client fetches everything it needs in one go: all items, the media they use, the navigation rules.</description>
+    </item>
+    
+    <item>
+      <title>The exam state that lived in a singleton</title>
+      <link>https://miloradbozic.github.io/blog/exam-state-singleton-stateless-services/</link>
+      <pubDate>Sun, 04 Nov 2018 18:30:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/exam-state-singleton-stateless-services/</guid>
+      <description>In the last post I described a proof of concept that runs QTI tests with JQTI+ behind a Spring Boot REST API. It worked great in the demo. Then two of us opened it in two browsers at the same time, and we were both answering the same test. When I clicked &amp;ldquo;next&amp;rdquo;, my colleague&amp;rsquo;s question changed.
+The bug The controller looked roughly like this:
+@RestController @RequestMapping(&amp;#34;/api/runner&amp;#34;) public class RunnerController { private AssessmentTestWrapper test; // &amp;lt;- here private int currentQuestion = 1; // &amp;lt;- and here @GetMapping(&amp;#34;/start&amp;#34;) public ChoiceResponse start() { test = new AssessmentTestWrapper(&amp;#34;assessment.</description>
+    </item>
+    
+    <item>
+      <title>Exams over satellite internet: designing for the worst network you can imagine</title>
+      <link>https://miloradbozic.github.io/blog/exams-over-satellite-internet/</link>
+      <pubDate>Sun, 20 May 2018 20:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/exams-over-satellite-internet/</guid>
+      <description>New year, new job. I&amp;rsquo;m now at Videotel, working on the platform that the maritime industry uses for training and assessment of seafarers. Crew members take tests when they apply for a job, and they take training and assessments on board, while the ship is at sea.
+The second part is what makes this interesting. Most of what I knew about web apps assumes the network is fast and basically always there.</description>
+    </item>
+    
     <item>
       <title>What I learned as the first in-house engineer</title>
       <link>https://miloradbozic.github.io/blog/lessons-first-in-house-engineer/</link>

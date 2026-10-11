@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>spring-boot on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/spring-boot/</link>
+    <description>Recent content in spring-boot on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 04 Nov 2018 18:30:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/spring-boot/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>The exam state that lived in a singleton</title>
+      <link>https://miloradbozic.github.io/blog/exam-state-singleton-stateless-services/</link>
+      <pubDate>Sun, 04 Nov 2018 18:30:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/exam-state-singleton-stateless-services/</guid>
+      <description>In the last post I described a proof of concept that runs QTI tests with JQTI+ behind a Spring Boot REST API. It worked great in the demo. Then two of us opened it in two browsers at the same time, and we were both answering the same test. When I clicked &amp;ldquo;next&amp;rdquo;, my colleague&amp;rsquo;s question changed.
+The bug The controller looked roughly like this:
+@RestController @RequestMapping(&amp;#34;/api/runner&amp;#34;) public class RunnerController { private AssessmentTestWrapper test; // &amp;lt;- here private int currentQuestion = 1; // &amp;lt;- and here @GetMapping(&amp;#34;/start&amp;#34;) public ChoiceResponse start() { test = new AssessmentTestWrapper(&amp;#34;assessment.</description>
+    </item>
+    
+  </channel>
+</rss>

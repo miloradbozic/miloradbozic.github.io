@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>The exam state that lived in a singleton | Milorad Bozic</title>
+    <meta name="description" content="A proof-of-concept bug that taught me where state belongs in a service that will run as many instances, plus LTI launch and Keycloak tokens">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/exam-state-singleton-stateless-services/">The exam state that lived in a singleton</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        November 4, 2018
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">distributed-systems</span>
+        
+          <span class="badge bg-success">java</span>
+        
+          <span class="badge bg-success">spring-boot</span>
+        
+          <span class="badge bg-success">keycloak</span>
+        
+          <span class="badge bg-success">lti</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>In the <a href="/blog/qti-21-java-jqtiplus/">last post</a> I described a proof of concept that runs QTI tests
+with JQTI+ behind a Spring Boot REST API. It worked great in the demo. Then two of us opened it in
+two browsers at the same time, and we were both answering <em>the same</em> test. When I clicked &ldquo;next&rdquo;,
+my colleague&rsquo;s question changed.</p>
+<h2 id="the-bug">The bug</h2>
+<p>The controller looked roughly like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@RestController</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@RequestMapping</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/api/runner&#34;</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">RunnerController</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> AssessmentTestWrapper test<span style="color:#f92672">;</span>      <span style="color:#75715e">// &lt;- here
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> currentQuestion <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">;</span>         <span style="color:#75715e">// &lt;- and here
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@GetMapping</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/start&#34;</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> ChoiceResponse <span style="color:#a6e22e">start</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        test <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> AssessmentTestWrapper<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;assessment.xml&#34;</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>        test<span style="color:#f92672">.</span><span style="color:#a6e22e">enterTest</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>        currentQuestion <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> render<span style="color:#f92672">(</span>test<span style="color:#f92672">.</span><span style="color:#a6e22e">getCurrentItem</span><span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@GetMapping</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/next&#34;</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> ChoiceResponse <span style="color:#a6e22e">next</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        test<span style="color:#f92672">.</span><span style="color:#a6e22e">advanceItemLinear</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> Date<span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>        currentQuestion<span style="color:#f92672">++;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> render<span style="color:#f92672">(</span>test<span style="color:#f92672">.</span><span style="color:#a6e22e">getCurrentItem</span><span style="color:#f92672">());</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>Spring controllers are <strong>singletons</strong>. There is one <code>RunnerController</code> for the whole application, so
+those fields are shared by every user. Everyone was in the same exam. Obvious once you see it, and
+easy to miss when you&rsquo;re the only person testing.</p>
+<h2 id="fix-1-http-session-and-why-its-not-enough">Fix 1: HTTP session (and why it&rsquo;s not enough)</h2>
+<p>The quick fix is to put the test in the <code>HttpSession</code>, one per user. I did that, and it works&hellip; on
+one instance. But this service will run as several instances behind a load balancer, probably in
+containers that come and go. An in-memory session means either sticky sessions (and losing all
+in-progress exams when that instance restarts), or session replication (complicated, and now you
+have a distributed cache problem).</p>
+<p>For an exam, &ldquo;the server restarted, please start again&rdquo; is not acceptable. Especially if the person
+is on a ship and the restart happened while their connection was down anyway.</p>
+<h2 id="fix-2-the-attempt-is-a-resource">Fix 2: the attempt is a resource</h2>
+<p>The real fix is to stop thinking about &ldquo;the session&rdquo; and start thinking about <strong>the attempt</strong> as a
+thing with an id, stored in the database:</p>
+<pre tabindex="0"><code>POST /attempts                    -&gt; 201, { &#34;attemptId&#34;: &#34;...&#34; }
+GET  /attempts/{id}               -&gt; current state, current item
+PUT  /attempts/{id}/responses/{item}
+POST /attempts/{id}/finish
+</code></pre><p>Every request says which attempt it&rsquo;s about. The service loads the attempt&rsquo;s state, applies the
+action, saves the state, and forgets about it. Any instance can serve any request. An instance can
+die between two answers and nobody notices.</p>
+<p>JQTI+ makes this possible because the test session state is an explicit object you can serialize
+(it has its own XML form). So &ldquo;load state → controller → apply → save&rdquo; is natural, not a hack.</p>
+<p>It also fits what we need for ships. The client can send answers for an attempt whenever the
+connection allows, and the attempt doesn&rsquo;t care which server instance, or which day, they arrive at.</p>
+<h2 id="getting-in-lti-launch">Getting in: LTI launch</h2>
+<p>Assessments are not a standalone app. Learners start them from an LMS. The standard way to do that is
+<strong>LTI</strong>: the LMS does a signed form POST to our launch URL with who the user is, which course, which
+resource. We verify it, create or find the attempt, and redirect into the assessment UI.</p>
+<p>The first version of our launch endpoint was literally &ldquo;print the parameters and redirect&rdquo;. Good
+enough to prove the LMS can reach us. The real one has to verify the OAuth 1.0 signature on that POST
+and reject replays, because otherwise anyone can launch an exam as anyone else.</p>
+<h2 id="who-is-this-keycloak">Who is this: Keycloak</h2>
+<p>Users and roles for the new platform live in <strong>Keycloak</strong>. For the browser app that&rsquo;s the standard
+OpenID Connect flow: the JavaScript adapter redirects to Keycloak&rsquo;s login page, gets tokens back, and
+refreshes them.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">keycloak</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">Keycloak</span>({
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">url</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;https://auth.example.com/auth&#39;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">realm</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;assessments&#39;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">clientId</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;assessment-ui&#39;</span>
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">keycloak</span>.<span style="color:#a6e22e">init</span>({ <span style="color:#a6e22e">onLoad</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;login-required&#39;</span> }).<span style="color:#a6e22e">success</span>(<span style="color:#66d9ef">function</span> () {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bootstrapApp</span>();
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// before each API call
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">keycloak</span>.<span style="color:#a6e22e">updateToken</span>(<span style="color:#ae81ff">30</span>).<span style="color:#a6e22e">success</span>(<span style="color:#66d9ef">function</span> () {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">request</span>.<span style="color:#a6e22e">headers</span>.<span style="color:#a6e22e">Authorization</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Bearer &#39;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">keycloak</span>.<span style="color:#a6e22e">token</span>;
+</span></span><span style="display:flex;"><span>});
+</span></span></code></pre></div><p>On the service side, every request carries a bearer token, and the service validates it with
+Keycloak&rsquo;s public key. No session, no call to Keycloak on every request. Which is the same lesson
+again: the service doesn&rsquo;t remember who you are, the request tells it, in a way it can verify.</p>
+<h2 id="the-rule-im-taking-away">The rule I&rsquo;m taking away</h2>
+<p>A service instance should be able to die between any two requests without anyone noticing. If it
+can&rsquo;t, there&rsquo;s state in the wrong place. In my case it was two innocent-looking fields in a
+controller.</p>
+
+          
+          
+            <div class="related-posts mt-4 py-3">
+              <h5>Related Posts</h5>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      September 9, 2018
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/qti-21-java-jqtiplus/">Running QTI 2.1 assessments in Java with JQTI+</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      May 20, 2018
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/exams-over-satellite-internet/">Exams over satellite internet: designing for the worst network you can imagine</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      December 17, 2017
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/lessons-first-in-house-engineer/">What I learned as the first in-house engineer</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+            </div>
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>

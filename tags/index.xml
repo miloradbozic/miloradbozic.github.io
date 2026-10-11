@@ -6,13 +6,121 @@
     <description>Recent content in Tags on Milorad Bozic</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Sun, 17 Dec 2017 17:00:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 16 Dec 2018 19:00:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>distributed-systems</title>
+      <link>https://miloradbozic.github.io/tags/distributed-systems/</link>
+      <pubDate>Sun, 16 Dec 2018 19:00:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/distributed-systems/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>idempotency</title>
+      <link>https://miloradbozic.github.io/tags/idempotency/</link>
+      <pubDate>Sun, 16 Dec 2018 19:00:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/idempotency/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>javascript</title>
+      <link>https://miloradbozic.github.io/tags/javascript/</link>
+      <pubDate>Sun, 16 Dec 2018 19:00:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/javascript/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>offline-first</title>
+      <link>https://miloradbozic.github.io/tags/offline-first/</link>
+      <pubDate>Sun, 16 Dec 2018 19:00:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/offline-first/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>java</title>
+      <link>https://miloradbozic.github.io/tags/java/</link>
+      <pubDate>Sun, 04 Nov 2018 18:30:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/java/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>keycloak</title>
+      <link>https://miloradbozic.github.io/tags/keycloak/</link>
+      <pubDate>Sun, 04 Nov 2018 18:30:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/keycloak/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>lti</title>
+      <link>https://miloradbozic.github.io/tags/lti/</link>
+      <pubDate>Sun, 04 Nov 2018 18:30:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/lti/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>spring-boot</title>
+      <link>https://miloradbozic.github.io/tags/spring-boot/</link>
+      <pubDate>Sun, 04 Nov 2018 18:30:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/spring-boot/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>assessments</title>
+      <link>https://miloradbozic.github.io/tags/assessments/</link>
+      <pubDate>Sun, 09 Sep 2018 19:15:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/assessments/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>qti</title>
+      <link>https://miloradbozic.github.io/tags/qti/</link>
+      <pubDate>Sun, 09 Sep 2018 19:15:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/qti/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>standards</title>
+      <link>https://miloradbozic.github.io/tags/standards/</link>
+      <pubDate>Sun, 09 Sep 2018 19:15:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/standards/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>architecture</title>
       <link>https://miloradbozic.github.io/tags/architecture/</link>
-      <pubDate>Sun, 17 Dec 2017 17:00:00 +0100</pubDate>
+      <pubDate>Sun, 20 May 2018 20:00:00 +0200</pubDate>
       
       <guid>https://miloradbozic.github.io/tags/architecture/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>networking</title>
+      <link>https://miloradbozic.github.io/tags/networking/</link>
+      <pubDate>Sun, 20 May 2018 20:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/networking/</guid>
       <description></description>
     </item>
     
@@ -22,15 +130,6 @@
       <pubDate>Sun, 17 Dec 2017 17:00:00 +0100</pubDate>
       
       <guid>https://miloradbozic.github.io/tags/career/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>distributed-systems</title>
-      <link>https://miloradbozic.github.io/tags/distributed-systems/</link>
-      <pubDate>Sun, 17 Dec 2017 17:00:00 +0100</pubDate>
-      
-      <guid>https://miloradbozic.github.io/tags/distributed-systems/</guid>
       <description></description>
     </item>
     
@@ -193,15 +292,6 @@
       <pubDate>Sun, 15 Jan 2017 19:20:00 +0100</pubDate>
       
       <guid>https://miloradbozic.github.io/tags/redsys/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>java</title>
-      <link>https://miloradbozic.github.io/tags/java/</link>
-      <pubDate>Tue, 27 Dec 2016 10:54:24 +0200</pubDate>
-      
-      <guid>https://miloradbozic.github.io/tags/java/</guid>
       <description></description>
     </item>
     

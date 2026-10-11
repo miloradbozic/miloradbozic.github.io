@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>networking on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/networking/</link>
+    <description>Recent content in networking on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 20 May 2018 20:00:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/networking/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Exams over satellite internet: designing for the worst network you can imagine</title>
+      <link>https://miloradbozic.github.io/blog/exams-over-satellite-internet/</link>
+      <pubDate>Sun, 20 May 2018 20:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/exams-over-satellite-internet/</guid>
+      <description>New year, new job. I&amp;rsquo;m now at Videotel, working on the platform that the maritime industry uses for training and assessment of seafarers. Crew members take tests when they apply for a job, and they take training and assessments on board, while the ship is at sea.
+The second part is what makes this interesting. Most of what I knew about web apps assumes the network is fast and basically always there.</description>
+    </item>
+    
+  </channel>
+</rss>

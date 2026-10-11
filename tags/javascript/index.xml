@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>javascript on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/javascript/</link>
+    <description>Recent content in javascript on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 16 Dec 2018 19:00:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/javascript/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Never lose an answer: offline-first answer saving for exams at sea</title>
+      <link>https://miloradbozic.github.io/blog/offline-first-answer-saving/</link>
+      <pubDate>Sun, 16 Dec 2018 19:00:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/offline-first-answer-saving/</guid>
+      <description>Back in May I wrote about what satellite internet on a ship means for an online exam. The rule I cared about most was: never lose an answer. The connection can go away at any point, for minutes, and the person taking the test should be able to keep going.
+This is how we&amp;rsquo;re approaching it. Not finished, but the shape is clear.
+Step 1: load the whole test up front When the attempt starts, the client fetches everything it needs in one go: all items, the media they use, the navigation rules.</description>
+    </item>
+    
+  </channel>
+</rss>

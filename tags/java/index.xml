@@ -6,7 +6,28 @@
     <description>Recent content in java on Milorad Bozic</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Tue, 27 Dec 2016 10:54:24 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/java/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 04 Nov 2018 18:30:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/java/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>The exam state that lived in a singleton</title>
+      <link>https://miloradbozic.github.io/blog/exam-state-singleton-stateless-services/</link>
+      <pubDate>Sun, 04 Nov 2018 18:30:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/exam-state-singleton-stateless-services/</guid>
+      <description>In the last post I described a proof of concept that runs QTI tests with JQTI+ behind a Spring Boot REST API. It worked great in the demo. Then two of us opened it in two browsers at the same time, and we were both answering the same test. When I clicked &amp;ldquo;next&amp;rdquo;, my colleague&amp;rsquo;s question changed.
+The bug The controller looked roughly like this:
+@RestController @RequestMapping(&amp;#34;/api/runner&amp;#34;) public class RunnerController { private AssessmentTestWrapper test; // &amp;lt;- here private int currentQuestion = 1; // &amp;lt;- and here @GetMapping(&amp;#34;/start&amp;#34;) public ChoiceResponse start() { test = new AssessmentTestWrapper(&amp;#34;assessment.</description>
+    </item>
+    
+    <item>
+      <title>Running QTI 2.1 assessments in Java with JQTI&#43;</title>
+      <link>https://miloradbozic.github.io/blog/qti-21-java-jqtiplus/</link>
+      <pubDate>Sun, 09 Sep 2018 19:15:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/qti-21-java-jqtiplus/</guid>
+      <description>For the new assessment platform we decided not to invent our own format for questions and tests. There is a standard for this, IMS QTI (Question and Test Interoperability), and version 2.1 is what most tools speak. Using it means authors can bring content from other tools, and our tests are not locked into our own database schema.
+The last few weeks I built a proof of concept: load a QTI test, step through it, submit answers, get a score.</description>
+    </item>
+    
     <item>
       <title>Hello world!</title>
       <link>https://miloradbozic.github.io/blog/hello-world/</link>

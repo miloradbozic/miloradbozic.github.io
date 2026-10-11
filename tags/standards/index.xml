@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>standards on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/standards/</link>
+    <description>Recent content in standards on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 09 Sep 2018 19:15:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/standards/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Running QTI 2.1 assessments in Java with JQTI&#43;</title>
+      <link>https://miloradbozic.github.io/blog/qti-21-java-jqtiplus/</link>
+      <pubDate>Sun, 09 Sep 2018 19:15:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/qti-21-java-jqtiplus/</guid>
+      <description>For the new assessment platform we decided not to invent our own format for questions and tests. There is a standard for this, IMS QTI (Question and Test Interoperability), and version 2.1 is what most tools speak. Using it means authors can bring content from other tools, and our tests are not locked into our own database schema.
+The last few weeks I built a proof of concept: load a QTI test, step through it, submit answers, get a score.</description>
+    </item>
+    
+  </channel>
+</rss>

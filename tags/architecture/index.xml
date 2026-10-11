@@ -6,7 +6,17 @@
     <description>Recent content in architecture on Milorad Bozic</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Sun, 17 Dec 2017 17:00:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/architecture/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 20 May 2018 20:00:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/architecture/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Exams over satellite internet: designing for the worst network you can imagine</title>
+      <link>https://miloradbozic.github.io/blog/exams-over-satellite-internet/</link>
+      <pubDate>Sun, 20 May 2018 20:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/exams-over-satellite-internet/</guid>
+      <description>New year, new job. I&amp;rsquo;m now at Videotel, working on the platform that the maritime industry uses for training and assessment of seafarers. Crew members take tests when they apply for a job, and they take training and assessments on board, while the ship is at sea.
+The second part is what makes this interesting. Most of what I knew about web apps assumes the network is fast and basically always there.</description>
+    </item>
+    
     <item>
       <title>What I learned as the first in-house engineer</title>
       <link>https://miloradbozic.github.io/blog/lessons-first-in-house-engineer/</link>

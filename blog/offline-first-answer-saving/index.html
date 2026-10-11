@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>Never lose an answer: offline-first answer saving for exams at sea | Milorad Bozic</title>
+    <meta name="description" content="A client-side outbox, idempotent writes with client-generated ids, and letting the server keep the clock">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/offline-first-answer-saving/">Never lose an answer: offline-first answer saving for exams at sea</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        December 16, 2018
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">distributed-systems</span>
+        
+          <span class="badge bg-success">offline-first</span>
+        
+          <span class="badge bg-success">javascript</span>
+        
+          <span class="badge bg-success">idempotency</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>Back in May I wrote about <a href="/blog/exams-over-satellite-internet/">what satellite internet on a ship means</a>
+for an online exam. The rule I cared about most was: <strong>never lose an answer</strong>. The connection can go
+away at any point, for minutes, and the person taking the test should be able to keep going.</p>
+<p>This is how we&rsquo;re approaching it. Not finished, but the shape is clear.</p>
+<h2 id="step-1-load-the-whole-test-up-front">Step 1: load the whole test up front</h2>
+<p>When the attempt starts, the client fetches everything it needs in one go: all items, the media they
+use, the navigation rules. From then on, showing the next question is a local operation. The network
+is only needed to send answers, and that can happen later.</p>
+<p>This sounds obvious, but it changes the API. Instead of &ldquo;give me the next question&rdquo; (one round trip
+per question, at ~600 ms each), it&rsquo;s &ldquo;give me the test&rdquo; once.</p>
+<h2 id="step-2-answers-go-to-an-outbox-not-to-the-server">Step 2: answers go to an outbox, not to the server</h2>
+<p>When the user answers, the UI does <strong>not</strong> call the API directly. It writes the answer to a local
+outbox, persisted in the browser so it survives a reload or a crashed tab, and immediately moves on.
+A separate sender process drains the outbox whenever there&rsquo;s a connection.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#66d9ef">function</span> <span style="color:#a6e22e">saveAnswer</span>(<span style="color:#a6e22e">attemptId</span>, <span style="color:#a6e22e">itemId</span>, <span style="color:#a6e22e">response</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">entry</span> <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">id</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">uuid</span>(),              <span style="color:#75715e">// generated on the client
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">attemptId</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">attemptId</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">itemId</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">itemId</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">response</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">response</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">answeredAt</span><span style="color:#f92672">:</span> Date.<span style="color:#a6e22e">now</span>(),  <span style="color:#75715e">// when the user answered, by the device clock
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">seq</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">nextSeq</span>(<span style="color:#a6e22e">attemptId</span>)  <span style="color:#75715e">// order of answers within this attempt
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    };
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">outbox</span>.<span style="color:#a6e22e">put</span>(<span style="color:#a6e22e">entry</span>);           <span style="color:#75715e">// IndexedDB / localStorage
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">sender</span>.<span style="color:#a6e22e">wake</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>The UI&rsquo;s only job is to make writing to the outbox never fail. Everything network-related is the
+sender&rsquo;s problem.</p>
+<h2 id="step-3-make-sending-safe-to-repeat">Step 3: make sending safe to repeat</h2>
+<p>The sender takes entries from the outbox and sends them. If the request times out, it doesn&rsquo;t know if
+the server got it. So it sends again, later. That means the server <strong>will</strong> receive some answers twice.</p>
+<p>The fix is the client-generated <code>id</code>. The server stores answers with that id as a unique key:</p>
+<pre tabindex="0"><code>PUT /attempts/{attemptId}/answers/{answerId}
+</code></pre><ul>
+<li>First time: store it, return <code>201</code>.</li>
+<li>Same id again: it&rsquo;s already there, return <code>200</code> with the same result.</li>
+</ul>
+<p><code>PUT</code> with an id chosen by the client is idempotent by design. The client can retry as much as it
+wants and the result is the same. An entry is removed from the outbox only after the server has
+confirmed it.</p>
+<h2 id="step-4-order-and-last-answer-wins">Step 4: order and &ldquo;last answer wins&rdquo;</h2>
+<p>A user can change their answer to question 5 three times while offline. When the link comes back,
+those three requests may arrive in any order, especially if retries are involved. Without care, the
+server might keep the second answer instead of the third.</p>
+<p>That&rsquo;s what <code>seq</code> is for. Per attempt, the client numbers its answers. For each item, the server keeps
+the response with the highest <code>seq</code> it has seen, and ignores older ones that arrive late. It&rsquo;s a small
+version of what databases call last-writer-wins, with an explicit version number instead of timestamps,
+because device clocks can&rsquo;t be trusted to order things.</p>
+<h2 id="step-5-the-server-keeps-the-clock">Step 5: the server keeps the clock</h2>
+<p>Speaking of clocks: assessments have time limits. If the client decides when time is up, anyone can
+change the device clock and get more time. If the server decides based on when answers <em>arrive</em>,
+someone who answered on time but was offline is punished for the weather.</p>
+<p>Our compromise:</p>
+<ul>
+<li>The server records when the attempt started, by its own clock, when the start request arrived.</li>
+<li>The client sends <code>answeredAt</code> with every answer. The server uses it, but checks it&rsquo;s plausible:
+not before the attempt started, not in the future, not after the time limit plus a tolerance.</li>
+<li>Answers that arrive late but were given on time count. Answers given after the limit don&rsquo;t.</li>
+</ul>
+<p>This is where JQTI+ helps: every operation takes an explicit timestamp, so we can replay answers into
+the test session with the time they were <em>given</em>, not the time they arrived.</p>
+<h2 id="step-6-finishing-while-offline">Step 6: finishing while offline</h2>
+<p>&ldquo;Finish test&rdquo; is just another entry in the outbox, after all the answers. The UI shows &ldquo;Your answers
+are saved and will be submitted when the connection is available&rdquo;. When the server receives the
+finish, it knows (by <code>seq</code>) whether it has every answer before it. If something is still missing, it
+waits for it before scoring.</p>
+<h2 id="the-general-lesson">The general lesson</h2>
+<p>None of this is specific to ships. It&rsquo;s the standard toolbox for any system where messages can be
+delayed, duplicated or reordered: an outbox, idempotent writes with ids chosen by the sender,
+sequence numbers instead of clocks for ordering, and one side that has the final word.</p>
+<p>The satellite just makes it impossible to pretend those problems don&rsquo;t exist.</p>
+
+          
+          
+            <div class="related-posts mt-4 py-3">
+              <h5>Related Posts</h5>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      May 20, 2018
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/exams-over-satellite-internet/">Exams over satellite internet: designing for the worst network you can imagine</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      November 4, 2018
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/exam-state-singleton-stateless-services/">The exam state that lived in a singleton</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      December 17, 2017
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/lessons-first-in-house-engineer/">What I learned as the first in-house engineer</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+            </div>
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>

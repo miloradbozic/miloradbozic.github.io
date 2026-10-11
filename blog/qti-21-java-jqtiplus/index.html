@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>Running QTI 2.1 assessments in Java with JQTI&#43; | Milorad Bozic</title>
+    <meta name="description" content="What the IMS QTI standard is, why we want it, and a small proof of concept that loads, runs and scores a test">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/qti-21-java-jqtiplus/">Running QTI 2.1 assessments in Java with JQTI&#43;</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        September 9, 2018
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">java</span>
+        
+          <span class="badge bg-success">qti</span>
+        
+          <span class="badge bg-success">assessments</span>
+        
+          <span class="badge bg-success">standards</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>For the new assessment platform we decided not to invent our own format for questions and tests.
+There is a standard for this, <strong>IMS QTI</strong> (Question and Test Interoperability), and version 2.1 is
+what most tools speak. Using it means authors can bring content from other tools, and our tests
+are not locked into our own database schema.</p>
+<p>The last few weeks I built a proof of concept: load a QTI test, step through it, submit answers,
+get a score. Here&rsquo;s what I learned.</p>
+<h2 id="what-qti-looks-like">What QTI looks like</h2>
+<p>A QTI <strong>item</strong> is one question, as XML. It says what the question is, what the correct response
+is, and how to score it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#f92672">&lt;assessmentItem</span> <span style="color:#a6e22e">identifier=</span><span style="color:#e6db74">&#34;choice&#34;</span> <span style="color:#a6e22e">title=</span><span style="color:#e6db74">&#34;Fire safety&#34;</span> <span style="color:#a6e22e">adaptive=</span><span style="color:#e6db74">&#34;false&#34;</span> <span style="color:#a6e22e">timeDependent=</span><span style="color:#e6db74">&#34;false&#34;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">xmlns=</span><span style="color:#e6db74">&#34;http://www.imsglobal.org/xsd/imsqti_v2p1&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;responseDeclaration</span> <span style="color:#a6e22e">identifier=</span><span style="color:#e6db74">&#34;RESPONSE&#34;</span> <span style="color:#a6e22e">cardinality=</span><span style="color:#e6db74">&#34;single&#34;</span> <span style="color:#a6e22e">baseType=</span><span style="color:#e6db74">&#34;identifier&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;correctResponse&gt;&lt;value&gt;</span>c2<span style="color:#f92672">&lt;/value&gt;&lt;/correctResponse&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;/responseDeclaration&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;outcomeDeclaration</span> <span style="color:#a6e22e">identifier=</span><span style="color:#e6db74">&#34;SCORE&#34;</span> <span style="color:#a6e22e">cardinality=</span><span style="color:#e6db74">&#34;single&#34;</span> <span style="color:#a6e22e">baseType=</span><span style="color:#e6db74">&#34;float&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;defaultValue&gt;&lt;value&gt;</span>0.0<span style="color:#f92672">&lt;/value&gt;&lt;/defaultValue&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;/outcomeDeclaration&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;itemBody&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;choiceInteraction</span> <span style="color:#a6e22e">responseIdentifier=</span><span style="color:#e6db74">&#34;RESPONSE&#34;</span> <span style="color:#a6e22e">shuffle=</span><span style="color:#e6db74">&#34;false&#34;</span> <span style="color:#a6e22e">maxChoices=</span><span style="color:#e6db74">&#34;1&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&lt;prompt&gt;</span>Which extinguisher should be used on an electrical fire?<span style="color:#f92672">&lt;/prompt&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&lt;simpleChoice</span> <span style="color:#a6e22e">identifier=</span><span style="color:#e6db74">&#34;c1&#34;</span><span style="color:#f92672">&gt;</span>Water<span style="color:#f92672">&lt;/simpleChoice&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&lt;simpleChoice</span> <span style="color:#a6e22e">identifier=</span><span style="color:#e6db74">&#34;c2&#34;</span><span style="color:#f92672">&gt;</span>CO2<span style="color:#f92672">&lt;/simpleChoice&gt;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">&lt;simpleChoice</span> <span style="color:#a6e22e">identifier=</span><span style="color:#e6db74">&#34;c3&#34;</span><span style="color:#f92672">&gt;</span>Foam<span style="color:#f92672">&lt;/simpleChoice&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/choiceInteraction&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;/itemBody&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;responseProcessing</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">template=</span><span style="color:#e6db74">&#34;http://www.imsglobal.org/question/qti_v2p1/rptemplates/match_correct&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/assessmentItem&gt;</span>
+</span></span></code></pre></div><p><code>match_correct</code> is a standard template: if the response matches the correct one, <code>SCORE</code> is 1,
+otherwise 0. You can also write your own response processing in QTI&rsquo;s own expression language,
+which is powerful and a bit scary.</p>
+<p>An <strong>assessment test</strong> is a separate file that references items, groups them into sections and
+test parts, and says how navigation works (linear or free), how outcomes are combined into a test
+score, and so on.</p>
+<h2 id="jqti">JQTI+</h2>
+<p>Writing a QTI engine yourself is a big job; the spec is large. The best Java option I found is
+<strong>JQTI+</strong>, the library inside <a href="https://github.com/davemckain/qtiworks">QTIWorks</a> from the University
+of Edinburgh. It parses and validates QTI, and more importantly it <em>runs</em> it: it keeps the state of
+a test session and executes the response and outcome processing.</p>
+<p>The project is no longer actively developed, which made us think twice. But the standard isn&rsquo;t
+moving fast either, the code is solid, and it&rsquo;s open source, so worst case we maintain our fork.
+It isn&rsquo;t on Maven Central, so for now it lives in a local Maven repository inside the project.</p>
+<h2 id="running-a-test">Running a test</h2>
+<p>The core object is a <code>TestSessionController</code>. Loading and resolving a test (the test XML plus all
+the items it references) needs a bit of setup; I ended up borrowing the loading helper from JQTI+&rsquo;s
+own unit tests. After that, a test run looks like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Date now <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Date<span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>TestSessionController controller <span style="color:#f92672">=</span> QtiLoader<span style="color:#f92672">.</span><span style="color:#a6e22e">loadTestForControl</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;assessment.xml&#34;</span><span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>controller<span style="color:#f92672">.</span><span style="color:#a6e22e">initialize</span><span style="color:#f92672">(</span>now<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>controller<span style="color:#f92672">.</span><span style="color:#a6e22e">enterTest</span><span style="color:#f92672">(</span>now<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>controller<span style="color:#f92672">.</span><span style="color:#a6e22e">enterNextAvailableTestPart</span><span style="color:#f92672">(</span>now<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// answer the current item
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>Map<span style="color:#f92672">&lt;</span>Identifier<span style="color:#f92672">,</span> ResponseData<span style="color:#f92672">&gt;</span> responses <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;();</span>
+</span></span><span style="display:flex;"><span>responses<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>Identifier<span style="color:#f92672">.</span><span style="color:#a6e22e">assumedLegal</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;RESPONSE&#34;</span><span style="color:#f92672">),</span> <span style="color:#66d9ef">new</span> StringResponseData<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;c2&#34;</span><span style="color:#f92672">));</span>
+</span></span><span style="display:flex;"><span>controller<span style="color:#f92672">.</span><span style="color:#a6e22e">handleResponsesToCurrentItem</span><span style="color:#f92672">(</span>now<span style="color:#f92672">,</span> responses<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// linear navigation: go to the next item
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>controller<span style="color:#f92672">.</span><span style="color:#a6e22e">advanceItemLinear</span><span style="color:#f92672">(</span>now<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// ... more items ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>controller<span style="color:#f92672">.</span><span style="color:#a6e22e">endCurrentTestPart</span><span style="color:#f92672">(</span>now<span style="color:#f92672">);</span>
+</span></span><span style="display:flex;"><span>TestSessionState state <span style="color:#f92672">=</span> controller<span style="color:#f92672">.</span><span style="color:#a6e22e">getTestSessionState</span><span style="color:#f92672">();</span>
+</span></span><span style="display:flex;"><span>String score <span style="color:#f92672">=</span> state<span style="color:#f92672">.</span><span style="color:#a6e22e">getOutcomeValue</span><span style="color:#f92672">(</span>Identifier<span style="color:#f92672">.</span><span style="color:#a6e22e">assumedLegal</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;TEST_SCORE&#34;</span><span style="color:#f92672">)).</span><span style="color:#a6e22e">toQtiString</span><span style="color:#f92672">();</span>
+</span></span></code></pre></div><p>Two things I liked:</p>
+<ul>
+<li><strong>Every call takes a timestamp.</strong> The engine doesn&rsquo;t read the clock itself. Time limits and
+durations are computed from the timestamps you pass. That&rsquo;s going to matter a lot for us, because
+on a ship the answer might <em>arrive</em> much later than it was <em>given</em>.</li>
+<li><strong>The state is an explicit object.</strong> <code>TestSessionState</code> holds everything about the attempt: which
+item is current, responses, outcomes. It can be serialized. So the engine itself doesn&rsquo;t force you
+to keep a session in memory.</li>
+</ul>
+<h2 id="what-the-proof-of-concept-is">What the proof of concept is</h2>
+<p>A small Spring Boot app with a REST API around this: start a test, get the current item rendered as
+JSON (prompt and choices), submit an answer, move to the next item, finish and get a summary with
+scores. Swagger on top so the frontend people can play with it.</p>
+<p>It&rsquo;s deliberately ugly inside, and only supports single-choice interactions for now. The goal was to
+answer one question: can we build our delivery engine on JQTI+ instead of writing our own? The
+answer is yes.</p>
+<p>Next step is making it something you could actually run for more than one user at a time, which, as
+I&rsquo;ll write about soon, the first version very much wasn&rsquo;t.</p>
+
+          
+          
+            <div class="related-posts mt-4 py-3">
+              <h5>Related Posts</h5>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      December 27, 2016
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/hello-world/">Hello world!</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+            </div>
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>
