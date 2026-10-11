@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>One door for every client: an API gateway as a facade | Milorad Bozic</title>
+    <meta name="description" content="Why our web app, the LMS integrations and the ship clients all talk to one entry point, and what belongs there (and what doesn&#39;t)">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/api-gateway-facade/">One door for every client: an API gateway as a facade</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        April 28, 2019
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">distributed-systems</span>
+        
+          <span class="badge bg-success">microservices</span>
+        
+          <span class="badge bg-success">api-gateway</span>
+        
+          <span class="badge bg-success">architecture</span>
+        
+          <span class="badge bg-success">java</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>As we split the old platform into Spring Boot services, we got a new problem very quickly: there
+are now many services, and many kinds of clients. The web app, the assessment UI, LMS integrations,
+the clients used on board ships. If every client talks to every service directly, every client has
+to know where every service lives, how it authenticates, and how its API looks this month.</p>
+<p>So all clients go through <strong>one entry point</strong>: an API gateway that acts as a facade over the
+services behind it.</p>
+<h2 id="what-a-facade-means-here">What a facade means here</h2>
+<p>The facade pattern, from the old Gang of Four book: give a simple interface to a complicated
+subsystem. That&rsquo;s exactly the job:</p>
+<ul>
+<li>The client sees <strong>one host</strong> and one consistent API.</li>
+<li>Behind it, requests are routed to the right service.</li>
+<li>Services can be split, merged, moved or rewritten, and clients don&rsquo;t notice as long as the facade
+keeps its contract.</li>
+</ul>
+<p>The last point is the important one during a migration. While a feature still lives in the old
+monolith, the gateway routes it there. When it moves to a new service, we change one route. The
+client keeps calling the same URL. That&rsquo;s how we can migrate piece by piece without a big-bang switch.</p>
+<h2 id="what-we-put-in-the-gateway">What we put in the gateway</h2>
+<p><strong>Routing.</strong> <code>/assessments/**</code> goes to the assessment service, <code>/content/**</code> to content, and so on.
+Some routes still point at the legacy platform.</p>
+<p><strong>Authentication at the edge.</strong> Every request must carry a valid token from
+<a href="/blog/exam-state-singleton-stateless-services/">Keycloak</a>. The gateway checks it once: signature,
+expiry, audience. Requests without a valid token never reach a service. Services still check roles for
+their own operations, but they don&rsquo;t each have to reimplement token handling for external traffic.</p>
+<p><strong>Aggregation for slow clients.</strong> This is where the ships come in. A screen that needs data from three
+services would need three round trips from the client. Over <a href="/blog/exams-over-satellite-internet/">satellite
+internet</a> at ~600 ms each, that hurts. So for a few important
+screens the gateway has an endpoint that calls the services <em>inside the data center</em>, where calls take
+milliseconds, and returns one combined response. One round trip over the satellite instead of three.</p>
+<p><strong>Cross-cutting basics.</strong> A request id added to every incoming request and passed on to every service
+call, so a request can be followed through the logs of all services. CORS in one place. Rate limiting.</p>
+<h2 id="what-we-keep-out-of-it">What we keep out of it</h2>
+<p>This is where gateways go wrong. They&rsquo;re the one place every request passes through, so it&rsquo;s tempting
+to put &ldquo;just a little&rdquo; logic there. Then a bit more. Then the gateway is a new monolith that every team
+has to change for every feature.</p>
+<p>Our rules:</p>
+<ul>
+<li><strong>No business logic.</strong> The gateway doesn&rsquo;t know what a passing score is. If a rule is about the
+domain, it lives in the service that owns that domain.</li>
+<li><strong>Aggregation only, no decisions.</strong> An aggregate endpoint can combine responses. It can&rsquo;t decide
+things based on them.</li>
+<li><strong>No database.</strong> If the gateway needs to remember something, that&rsquo;s a sign the thing belongs in a
+service.</li>
+</ul>
+<h2 id="the-costs">The costs</h2>
+<ul>
+<li><strong>It&rsquo;s a single point of failure</strong> by design. So it runs as several instances, it&rsquo;s stateless, and it
+has to be boring and well tested.</li>
+<li><strong>One more hop.</strong> In the data center that&rsquo;s negligible. Over the satellite, the aggregation more than
+pays it back.</li>
+<li><strong>Timeouts become your problem.</strong> If one service is slow, the gateway must not wait forever and
+hold the connection. Every route has a timeout, and an aggregate endpoint returns partial data
+rather than nothing when one service is down, if the screen can live with that.</li>
+</ul>
+<h2 id="why-i-like-it">Why I like it</h2>
+<p>A gateway as a facade is not exciting technology. But during a migration from a monolith to services,
+it&rsquo;s the thing that lets you move the inside without breaking the outside. And for clients on a bad
+network it&rsquo;s the natural place to turn many small calls into one.</p>
+
+          
+          
+            <div class="related-posts mt-4 py-3">
+              <h5>Related Posts</h5>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      November 4, 2018
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/exam-state-singleton-stateless-services/">The exam state that lived in a singleton</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      May 20, 2018
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/exams-over-satellite-internet/">Exams over satellite internet: designing for the worst network you can imagine</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      December 17, 2017
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/lessons-first-in-house-engineer/">What I learned as the first in-house engineer</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+            </div>
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>

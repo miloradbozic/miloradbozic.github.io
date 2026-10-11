@@ -6,7 +6,7 @@
     <description>Recent content on Milorad Bozic</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Sun, 16 Dec 2018 19:00:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 20 Oct 2019 18:00:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Resume</title>
       <link>https://miloradbozic.github.io/resume/</link>
@@ -16,6 +16,46 @@
       <description>Senior Backend Engineer · Distributed Systems / Go &amp;amp; TypeScript / AI-Native
 Serbia (remote, CET) · Serbian / English / Spanish
 Senior backend engineer with 12+ years building large-scale distributed systems and multi-tenant SaaS. I design backend services end to end and own complex rewrites. Comfortable across Go, TypeScript/Node and Python. AI coding agents are my default daily workflow, and I&amp;rsquo;ve built agentic systems and LLM-context engines end to end.</description>
+    </item>
+    
+    <item>
+      <title>Spring Boot on Kubernetes: memory, probes and shutting down politely</title>
+      <link>https://miloradbozic.github.io/blog/spring-boot-on-kubernetes/</link>
+      <pubDate>Sun, 20 Oct 2019 18:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/spring-boot-on-kubernetes/</guid>
+      <description>Our Spring Boot services run on Kubernetes now. Getting a jar into a container and a container into a cluster is the easy part, and there are a hundred tutorials for it. These are the things that are easy to get wrong after that, and that every Java service on Kubernetes needs to get right.
+1. The JVM and the container memory limit You give the pod a memory limit, say 1 GiB.</description>
+    </item>
+    
+    <item>
+      <title>RabbitMQ with Spring Boot: retries, dead letters and the message that comes twice</title>
+      <link>https://miloradbozic.github.io/blog/rabbitmq-retries-dead-letters/</link>
+      <pubDate>Sun, 14 Jul 2019 19:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/rabbitmq-retries-dead-letters/</guid>
+      <description>When a seafarer finishes an assessment, several things have to happen: the result is scored and stored, reports are updated, the LMS that launched the test gets the outcome, maybe a certificate is generated. None of that should make the person wait, and none of it should fail because one of those systems is having a bad day.
+So &amp;ldquo;attempt finished&amp;rdquo; is an event on RabbitMQ, and each of those things is a consumer.</description>
+    </item>
+    
+    <item>
+      <title>One door for every client: an API gateway as a facade</title>
+      <link>https://miloradbozic.github.io/blog/api-gateway-facade/</link>
+      <pubDate>Sun, 28 Apr 2019 18:20:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/api-gateway-facade/</guid>
+      <description>As we split the old platform into Spring Boot services, we got a new problem very quickly: there are now many services, and many kinds of clients. The web app, the assessment UI, LMS integrations, the clients used on board ships. If every client talks to every service directly, every client has to know where every service lives, how it authenticates, and how its API looks this month.
+So all clients go through one entry point: an API gateway that acts as a facade over the services behind it.</description>
+    </item>
+    
+    <item>
+      <title>Elasticsearch as a primary database: what I wish someone had told me</title>
+      <link>https://miloradbozic.github.io/blog/elasticsearch-as-primary-database/</link>
+      <pubDate>Sun, 17 Feb 2019 19:40:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/elasticsearch-as-primary-database/</guid>
+      <description>Two years ago I used Elasticsearch as a read model: MySQL was the truth, Elasticsearch was a copy built for searching, and if the copy broke you rebuilt it. On the platform I work on now, Elasticsearch is the truth. Users, content, results: the primary store for a lot of the data is an Elasticsearch cluster.
+It wasn&amp;rsquo;t my decision, and I&amp;rsquo;m not going to argue it was right or wrong.</description>
     </item>
     
     <item>

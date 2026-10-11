@@ -6,7 +6,17 @@
     <description>Recent content in devops on Milorad Bozic</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Sun, 15 Oct 2017 18:45:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/devops/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 20 Oct 2019 18:00:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/devops/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Spring Boot on Kubernetes: memory, probes and shutting down politely</title>
+      <link>https://miloradbozic.github.io/blog/spring-boot-on-kubernetes/</link>
+      <pubDate>Sun, 20 Oct 2019 18:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/spring-boot-on-kubernetes/</guid>
+      <description>Our Spring Boot services run on Kubernetes now. Getting a jar into a container and a container into a cluster is the easy part, and there are a hundred tutorials for it. These are the things that are easy to get wrong after that, and that every Java service on Kubernetes needs to get right.
+1. The JVM and the container memory limit You give the pod a memory limit, say 1 GiB.</description>
+    </item>
+    
     <item>
       <title>Immutable servers with Packer, Ansible and Terraform</title>
       <link>https://miloradbozic.github.io/blog/immutable-servers-packer-ansible-terraform/</link>

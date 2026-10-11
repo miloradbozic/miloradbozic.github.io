@@ -6,13 +6,64 @@
     <lastmod>2026-10-05T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/</loc>
-    <lastmod>2018-12-16T19:00:00+01:00</lastmod>
+    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/blog/</loc>
-    <lastmod>2018-12-16T19:00:00+01:00</lastmod>
+    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/devops/</loc>
+    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/tags/distributed-systems/</loc>
-    <lastmod>2018-12-16T19:00:00+01:00</lastmod>
+    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/java/</loc>
+    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/kubernetes/</loc>
+    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/spring-boot-on-kubernetes/</loc>
+    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/spring-boot/</loc>
+    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/</loc>
+    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/messaging/</loc>
+    <lastmod>2019-07-14T19:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/rabbitmq/</loc>
+    <lastmod>2019-07-14T19:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/rabbitmq-retries-dead-letters/</loc>
+    <lastmod>2019-07-14T19:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/api-gateway/</loc>
+    <lastmod>2019-04-28T18:20:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/architecture/</loc>
+    <lastmod>2019-04-28T18:20:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/microservices/</loc>
+    <lastmod>2019-04-28T18:20:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/api-gateway-facade/</loc>
+    <lastmod>2019-04-28T18:20:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/consistency/</loc>
+    <lastmod>2019-02-17T19:40:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/databases/</loc>
+    <lastmod>2019-02-17T19:40:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/elasticsearch/</loc>
+    <lastmod>2019-02-17T19:40:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/elasticsearch-as-primary-database/</loc>
+    <lastmod>2019-02-17T19:40:00+01:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/tags/idempotency/</loc>
     <lastmod>2018-12-16T19:00:00+01:00</lastmod>
@@ -26,19 +77,10 @@
     <loc>https://miloradbozic.github.io/tags/offline-first/</loc>
     <lastmod>2018-12-16T19:00:00+01:00</lastmod>
   </url><url>
-    <loc>https://miloradbozic.github.io/tags/</loc>
-    <lastmod>2018-12-16T19:00:00+01:00</lastmod>
-  </url><url>
-    <loc>https://miloradbozic.github.io/tags/java/</loc>
-    <lastmod>2018-11-04T18:30:00+01:00</lastmod>
-  </url><url>
     <loc>https://miloradbozic.github.io/tags/keycloak/</loc>
     <lastmod>2018-11-04T18:30:00+01:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/tags/lti/</loc>
-    <lastmod>2018-11-04T18:30:00+01:00</lastmod>
-  </url><url>
-    <loc>https://miloradbozic.github.io/tags/spring-boot/</loc>
     <lastmod>2018-11-04T18:30:00+01:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/blog/exam-state-singleton-stateless-services/</loc>
@@ -55,9 +97,6 @@
   </url><url>
     <loc>https://miloradbozic.github.io/tags/standards/</loc>
     <lastmod>2018-09-09T19:15:00+02:00</lastmod>
-  </url><url>
-    <loc>https://miloradbozic.github.io/tags/architecture/</loc>
-    <lastmod>2018-05-20T20:00:00+02:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/blog/exams-over-satellite-internet/</loc>
     <lastmod>2018-05-20T20:00:00+02:00</lastmod>
@@ -80,9 +119,6 @@
     <loc>https://miloradbozic.github.io/tags/aws/</loc>
     <lastmod>2017-10-15T18:45:00+02:00</lastmod>
   </url><url>
-    <loc>https://miloradbozic.github.io/tags/devops/</loc>
-    <lastmod>2017-10-15T18:45:00+02:00</lastmod>
-  </url><url>
     <loc>https://miloradbozic.github.io/blog/immutable-servers-packer-ansible-terraform/</loc>
     <lastmod>2017-10-15T18:45:00+02:00</lastmod>
   </url><url>
@@ -94,9 +130,6 @@
   </url><url>
     <loc>https://miloradbozic.github.io/tags/terraform/</loc>
     <lastmod>2017-10-15T18:45:00+02:00</lastmod>
-  </url><url>
-    <loc>https://miloradbozic.github.io/tags/elasticsearch/</loc>
-    <lastmod>2017-08-20T19:30:00+02:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/tags/mysql/</loc>
     <lastmod>2017-08-20T19:30:00+02:00</lastmod>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>rabbitmq on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/rabbitmq/</link>
+    <description>Recent content in rabbitmq on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 14 Jul 2019 19:00:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/rabbitmq/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>RabbitMQ with Spring Boot: retries, dead letters and the message that comes twice</title>
+      <link>https://miloradbozic.github.io/blog/rabbitmq-retries-dead-letters/</link>
+      <pubDate>Sun, 14 Jul 2019 19:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/rabbitmq-retries-dead-letters/</guid>
+      <description>When a seafarer finishes an assessment, several things have to happen: the result is scored and stored, reports are updated, the LMS that launched the test gets the outcome, maybe a certificate is generated. None of that should make the person wait, and none of it should fail because one of those systems is having a bad day.
+So &amp;ldquo;attempt finished&amp;rdquo; is an event on RabbitMQ, and each of those things is a consumer.</description>
+    </item>
+    
+  </channel>
+</rss>

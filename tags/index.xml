@@ -6,13 +6,121 @@
     <description>Recent content in Tags on Milorad Bozic</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Sun, 16 Dec 2018 19:00:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 20 Oct 2019 18:00:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>devops</title>
+      <link>https://miloradbozic.github.io/tags/devops/</link>
+      <pubDate>Sun, 20 Oct 2019 18:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/devops/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>distributed-systems</title>
       <link>https://miloradbozic.github.io/tags/distributed-systems/</link>
-      <pubDate>Sun, 16 Dec 2018 19:00:00 +0100</pubDate>
+      <pubDate>Sun, 20 Oct 2019 18:00:00 +0200</pubDate>
       
       <guid>https://miloradbozic.github.io/tags/distributed-systems/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>java</title>
+      <link>https://miloradbozic.github.io/tags/java/</link>
+      <pubDate>Sun, 20 Oct 2019 18:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/java/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>kubernetes</title>
+      <link>https://miloradbozic.github.io/tags/kubernetes/</link>
+      <pubDate>Sun, 20 Oct 2019 18:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/kubernetes/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>spring-boot</title>
+      <link>https://miloradbozic.github.io/tags/spring-boot/</link>
+      <pubDate>Sun, 20 Oct 2019 18:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/spring-boot/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>messaging</title>
+      <link>https://miloradbozic.github.io/tags/messaging/</link>
+      <pubDate>Sun, 14 Jul 2019 19:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/messaging/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>rabbitmq</title>
+      <link>https://miloradbozic.github.io/tags/rabbitmq/</link>
+      <pubDate>Sun, 14 Jul 2019 19:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/rabbitmq/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>api-gateway</title>
+      <link>https://miloradbozic.github.io/tags/api-gateway/</link>
+      <pubDate>Sun, 28 Apr 2019 18:20:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/api-gateway/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>architecture</title>
+      <link>https://miloradbozic.github.io/tags/architecture/</link>
+      <pubDate>Sun, 28 Apr 2019 18:20:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/architecture/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>microservices</title>
+      <link>https://miloradbozic.github.io/tags/microservices/</link>
+      <pubDate>Sun, 28 Apr 2019 18:20:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/microservices/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>consistency</title>
+      <link>https://miloradbozic.github.io/tags/consistency/</link>
+      <pubDate>Sun, 17 Feb 2019 19:40:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/consistency/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>databases</title>
+      <link>https://miloradbozic.github.io/tags/databases/</link>
+      <pubDate>Sun, 17 Feb 2019 19:40:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/databases/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>elasticsearch</title>
+      <link>https://miloradbozic.github.io/tags/elasticsearch/</link>
+      <pubDate>Sun, 17 Feb 2019 19:40:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/tags/elasticsearch/</guid>
       <description></description>
     </item>
     
@@ -44,15 +152,6 @@
     </item>
     
     <item>
-      <title>java</title>
-      <link>https://miloradbozic.github.io/tags/java/</link>
-      <pubDate>Sun, 04 Nov 2018 18:30:00 +0100</pubDate>
-      
-      <guid>https://miloradbozic.github.io/tags/java/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>keycloak</title>
       <link>https://miloradbozic.github.io/tags/keycloak/</link>
       <pubDate>Sun, 04 Nov 2018 18:30:00 +0100</pubDate>
@@ -67,15 +166,6 @@
       <pubDate>Sun, 04 Nov 2018 18:30:00 +0100</pubDate>
       
       <guid>https://miloradbozic.github.io/tags/lti/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>spring-boot</title>
-      <link>https://miloradbozic.github.io/tags/spring-boot/</link>
-      <pubDate>Sun, 04 Nov 2018 18:30:00 +0100</pubDate>
-      
-      <guid>https://miloradbozic.github.io/tags/spring-boot/</guid>
       <description></description>
     </item>
     
@@ -103,15 +193,6 @@
       <pubDate>Sun, 09 Sep 2018 19:15:00 +0200</pubDate>
       
       <guid>https://miloradbozic.github.io/tags/standards/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>architecture</title>
-      <link>https://miloradbozic.github.io/tags/architecture/</link>
-      <pubDate>Sun, 20 May 2018 20:00:00 +0200</pubDate>
-      
-      <guid>https://miloradbozic.github.io/tags/architecture/</guid>
       <description></description>
     </item>
     
@@ -161,15 +242,6 @@
     </item>
     
     <item>
-      <title>devops</title>
-      <link>https://miloradbozic.github.io/tags/devops/</link>
-      <pubDate>Sun, 15 Oct 2017 18:45:00 +0200</pubDate>
-      
-      <guid>https://miloradbozic.github.io/tags/devops/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>infrastructure</title>
       <link>https://miloradbozic.github.io/tags/infrastructure/</link>
       <pubDate>Sun, 15 Oct 2017 18:45:00 +0200</pubDate>
@@ -193,15 +265,6 @@
       <pubDate>Sun, 15 Oct 2017 18:45:00 +0200</pubDate>
       
       <guid>https://miloradbozic.github.io/tags/terraform/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>elasticsearch</title>
-      <link>https://miloradbozic.github.io/tags/elasticsearch/</link>
-      <pubDate>Sun, 20 Aug 2017 19:30:00 +0200</pubDate>
-      
-      <guid>https://miloradbozic.github.io/tags/elasticsearch/</guid>
       <description></description>
     </item>
     

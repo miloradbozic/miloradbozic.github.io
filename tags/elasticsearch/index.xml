@@ -6,7 +6,17 @@
     <description>Recent content in elasticsearch on Milorad Bozic</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Sun, 20 Aug 2017 19:30:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/elasticsearch/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 17 Feb 2019 19:40:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/elasticsearch/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Elasticsearch as a primary database: what I wish someone had told me</title>
+      <link>https://miloradbozic.github.io/blog/elasticsearch-as-primary-database/</link>
+      <pubDate>Sun, 17 Feb 2019 19:40:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/elasticsearch-as-primary-database/</guid>
+      <description>Two years ago I used Elasticsearch as a read model: MySQL was the truth, Elasticsearch was a copy built for searching, and if the copy broke you rebuilt it. On the platform I work on now, Elasticsearch is the truth. Users, content, results: the primary store for a lot of the data is an Elasticsearch cluster.
+It wasn&amp;rsquo;t my decision, and I&amp;rsquo;m not going to argue it was right or wrong.</description>
+    </item>
+    
     <item>
       <title>Our first step out of the monolith was a read model</title>
       <link>https://miloradbozic.github.io/blog/elasticsearch-read-model-from-replica/</link>

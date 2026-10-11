@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>Elasticsearch as a primary database: what I wish someone had told me | Milorad Bozic</title>
+    <meta name="description" content="No transactions, near-real-time reads, versions instead of locks, and mappings you can&#39;t change. Living with a search engine as the source of truth">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/elasticsearch-as-primary-database/">Elasticsearch as a primary database: what I wish someone had told me</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        February 17, 2019
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">distributed-systems</span>
+        
+          <span class="badge bg-success">elasticsearch</span>
+        
+          <span class="badge bg-success">databases</span>
+        
+          <span class="badge bg-success">consistency</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>Two years ago I <a href="/blog/elasticsearch-read-model-from-replica/">used Elasticsearch as a read model</a>:
+MySQL was the truth, Elasticsearch was a copy built for searching, and if the copy broke you rebuilt
+it. On the platform I work on now, Elasticsearch <strong>is</strong> the truth. Users, content, results: the
+primary store for a lot of the data is an Elasticsearch cluster.</p>
+<p>It wasn&rsquo;t my decision, and I&rsquo;m not going to argue it was right or wrong. It works. But it&rsquo;s a very
+different database from the ones most of us learned on, and the problems come exactly from treating
+it like one of those. Here&rsquo;s my list.</p>
+<h2 id="1-saved-doesnt-mean-visible">1. &ldquo;Saved&rdquo; doesn&rsquo;t mean &ldquo;visible&rdquo;</h2>
+<p>Elasticsearch is <em>near</em> real time. A document you just indexed is durable (it&rsquo;s in the translog) but
+it doesn&rsquo;t show up in <strong>searches</strong> until the next refresh, by default about a second later.</p>
+<p>The classic bug: user saves something, the UI redirects to a list, the list is a search, the new item
+isn&rsquo;t there. User saves again. Now there are two.</p>
+<p>What helps:</p>
+<ul>
+<li><strong>Read by id when you can.</strong> A <code>GET /index/_doc/{id}</code> is real time, it doesn&rsquo;t wait for a refresh.
+After a write, show the thing you just wrote by id, not via a search.</li>
+<li><strong><code>refresh=wait_for</code> on writes that a user will immediately search for.</strong> The request returns only
+after the change is searchable. Slower, so not for bulk jobs.</li>
+<li>Never <code>refresh=true</code> on every write. It works in tests and kills the cluster under load.</li>
+</ul>
+<h2 id="2-there-are-no-transactions">2. There are no transactions</h2>
+<p>You can&rsquo;t update a user and their results &ldquo;together&rdquo;. Each document write is atomic on its own,
+and that&rsquo;s all you get.</p>
+<p>So you design for it:</p>
+<ul>
+<li>Put things that must change together <strong>in the same document</strong>. Denormalize more than you&rsquo;re
+comfortable with.</li>
+<li>When you can&rsquo;t, make the multi-step operation <strong>safe to re-run</strong> from any point, and write the steps
+in an order where a half-finished state is harmless. (Same idea as the <a href="/blog/invoice-fan-out-sqs/">queue jobs at my last
+job</a>: the unit of failure has to be something you can retry.)</li>
+</ul>
+<h2 id="3-versions-instead-of-locks">3. Versions instead of locks</h2>
+<p>Two requests read the same document, both change it, both write it back. The second one silently
+overwrites the first. In SQL you&rsquo;d reach for a transaction or <code>SELECT ... FOR UPDATE</code>. Here you use
+<strong>optimistic concurrency</strong>: every document has a version, and you can say &ldquo;only write this if the
+version is still the one I read&rdquo;.</p>
+<pre tabindex="0"><code>GET /attempts/_doc/42           -&gt; { &#34;_version&#34;: 7, ... }
+
+PUT /attempts/_doc/42?version=7
+{ ...changed document... }
+</code></pre><p>If someone else wrote in between, you get a <code>409 Conflict</code>. Then you read again, apply your change
+again, and retry. We wrapped this in a small helper so nobody does a blind read-modify-write by
+accident. (Elasticsearch is moving this to sequence numbers, <code>if_seq_no</code> and <code>if_primary_term</code>, same
+idea.)</p>
+<h2 id="4-the-mapping-is-almost-forever">4. The mapping is (almost) forever</h2>
+<p>You can add fields to a mapping. You can&rsquo;t change the type of an existing field. If <code>score</code> was
+mapped as <code>keyword</code> by dynamic mapping because the first document happened to contain <code>&quot;85&quot;</code>, it&rsquo;s a
+<code>keyword</code> until you reindex everything.</p>
+<ul>
+<li><strong>Turn off dynamic mapping</strong> for the important indices (<code>&quot;dynamic&quot;: &quot;strict&quot;</code>). A typo in a field
+name should be an error, not a new field.</li>
+<li><strong>Always go through an alias</strong>, so that reindexing into a new index and switching over is possible
+without downtime. When Elasticsearch is the primary store, reindex is your migration tool, the same
+way <code>ALTER TABLE</code> would be.</li>
+</ul>
+<h2 id="5-no-joins-so-model-for-the-reads">5. No joins, so model for the reads</h2>
+<p>There are no joins worth using. Every screen should be answerable from one index, ideally one query.
+This pushes you to model data around how it&rsquo;s <strong>read</strong>, not how it&rsquo;s related. For a primary store
+that&rsquo;s a real trade-off: writes get more complicated (update the copies), reads get simple and fast.</p>
+<h2 id="6-backups-are-snapshots-and-you-should-test-restoring-them">6. Backups are snapshots, and you should test restoring them</h2>
+<p>If Elasticsearch is your primary store, losing the cluster means losing the data, not &ldquo;rebuild from
+MySQL&rdquo;. Snapshots to S3 on a schedule, and, the part people skip, actually restoring one into a test
+cluster from time to time. A backup you&rsquo;ve never restored is a hope, not a backup.</p>
+<h2 id="7-watch-the-cluster-like-a-database">7. Watch the cluster like a database</h2>
+<p>Shard count, heap usage, rejected thread pool tasks, and cluster health going yellow. With a search
+index you can get away with not looking. With the primary store you can&rsquo;t.</p>
+<h2 id="would-i-choose-it">Would I choose it?</h2>
+<p>For data that is mostly read, searched and aggregated, with few cross-document invariants, it&rsquo;s
+actually quite pleasant. For anything with money or strict invariants, I&rsquo;d still want a relational
+database underneath, with Elasticsearch as the copy.</p>
+<p>The main lesson is not about Elasticsearch, though. Every database makes promises about consistency,
+and they&rsquo;re all different. Find out what yours actually promises before you write code that assumes
+the ones you&rsquo;re used to.</p>
+
+          
+          
+            <div class="related-posts mt-4 py-3">
+              <h5>Related Posts</h5>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      August 20, 2017
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/elasticsearch-read-model-from-replica/">Our first step out of the monolith was a read model</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      December 16, 2018
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/offline-first-answer-saving/">Never lose an answer: offline-first answer saving for exams at sea</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      November 4, 2018
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/exam-state-singleton-stateless-services/">The exam state that lived in a singleton</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+            </div>
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>

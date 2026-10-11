@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>consistency on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/consistency/</link>
+    <description>Recent content in consistency on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 17 Feb 2019 19:40:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/consistency/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Elasticsearch as a primary database: what I wish someone had told me</title>
+      <link>https://miloradbozic.github.io/blog/elasticsearch-as-primary-database/</link>
+      <pubDate>Sun, 17 Feb 2019 19:40:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/elasticsearch-as-primary-database/</guid>
+      <description>Two years ago I used Elasticsearch as a read model: MySQL was the truth, Elasticsearch was a copy built for searching, and if the copy broke you rebuilt it. On the platform I work on now, Elasticsearch is the truth. Users, content, results: the primary store for a lot of the data is an Elasticsearch cluster.
+It wasn&amp;rsquo;t my decision, and I&amp;rsquo;m not going to argue it was right or wrong.</description>
+    </item>
+    
+  </channel>
+</rss>
