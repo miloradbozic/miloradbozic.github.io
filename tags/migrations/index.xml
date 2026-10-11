@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>migrations on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/migrations/</link>
+    <description>Recent content in migrations on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 14 Jun 2020 19:00:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/migrations/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Moving data off a legacy platform without a big bang</title>
+      <link>https://miloradbozic.github.io/blog/migrating-data-off-legacy-platform/</link>
+      <pubDate>Sun, 14 Jun 2020 19:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/migrating-data-off-legacy-platform/</guid>
+      <description>Moving code from a legacy platform to new services is the part everyone talks about. With the gateway in front, you can route one endpoint at a time to the new service. Moving the data is harder, because for a while it has to live in two places, and both places think they&amp;rsquo;re right.
+The &amp;ldquo;big bang&amp;rdquo; version: announce downtime for a weekend, stop everything, run a migration script, switch, hope.</description>
+    </item>
+    
+  </channel>
+</rss>

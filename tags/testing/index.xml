@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>testing on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/testing/</link>
+    <description>Recent content in testing on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 09 Feb 2020 18:30:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/testing/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Contract tests: how services stop breaking each other</title>
+      <link>https://miloradbozic.github.io/blog/consumer-driven-contract-tests/</link>
+      <pubDate>Sun, 09 Feb 2020 18:30:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/consumer-driven-contract-tests/</guid>
+      <description>With one monolith, if you rename a field, the compiler tells you everywhere it&amp;rsquo;s used. With twenty services, nobody tells you. Your tests pass, your service deploys, and another service that reads that field starts failing in production. The compiler&amp;rsquo;s job is now yours.
+The usual answers are not great:
+Unit tests with mocks test your service against your idea of the other service. If your idea is wrong, the tests are green and wrong.</description>
+    </item>
+    
+  </channel>
+</rss>

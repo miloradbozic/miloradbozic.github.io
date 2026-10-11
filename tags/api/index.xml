@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>api on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/api/</link>
+    <description>Recent content in api on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 16 May 2021 19:10:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/api/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>TypeScript types stop at the network: validating input with Zod</title>
+      <link>https://miloradbozic.github.io/blog/typescript-runtime-validation-zod/</link>
+      <pubDate>Sun, 16 May 2021 19:10:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/typescript-runtime-validation-zod/</guid>
+      <description>TypeScript makes a Node codebase much nicer to work in. But there&amp;rsquo;s one place where it quietly stops helping, and it&amp;rsquo;s exactly the place where most bugs come from: the boundary. Anything that comes from outside your process, HTTP request bodies, query strings, responses from other services, messages from a queue, environment variables, is unknown at runtime, no matter what type you put on it.
+The lie app.post(&amp;#39;/searches&amp;#39;, async (req, res) =&amp;gt; { const body = req.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -6,30 +6,102 @@
     <lastmod>2026-10-05T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/</loc>
-    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
+    <lastmod>2021-12-12T17:30:00+01:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/blog/</loc>
-    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
+    <lastmod>2021-12-12T17:30:00+01:00</lastmod>
   </url><url>
-    <loc>https://miloradbozic.github.io/tags/devops/</loc>
-    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
+    <loc>https://miloradbozic.github.io/tags/concurrency/</loc>
+    <lastmod>2021-12-12T17:30:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/nodejs/</loc>
+    <lastmod>2021-12-12T17:30:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/nodejs-event-loop-blocking/</loc>
+    <lastmod>2021-12-12T17:30:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/performance/</loc>
+    <lastmod>2021-12-12T17:30:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/</loc>
+    <lastmod>2021-12-12T17:30:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/typescript/</loc>
+    <lastmod>2021-12-12T17:30:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/career/</loc>
+    <lastmod>2021-09-19T18:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/code-review/</loc>
+    <lastmod>2021-09-19T18:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/mentoring/</loc>
+    <lastmod>2021-09-19T18:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/mentoring-junior-developers/</loc>
+    <lastmod>2021-09-19T18:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/teams/</loc>
+    <lastmod>2021-09-19T18:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/api/</loc>
+    <lastmod>2021-05-16T19:10:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/typescript-runtime-validation-zod/</loc>
+    <lastmod>2021-05-16T19:10:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/validation/</loc>
+    <lastmod>2021-05-16T19:10:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/vector-tiles-buildings-map/</loc>
+    <lastmod>2021-02-21T18:40:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/maps/</loc>
+    <lastmod>2021-02-21T18:40:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/postgis/</loc>
+    <lastmod>2021-02-21T18:40:00+01:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/tags/distributed-systems/</loc>
-    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
+    <lastmod>2020-09-27T18:15:00+02:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/tags/java/</loc>
+    <lastmod>2020-09-27T18:15:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/microservices/</loc>
+    <lastmod>2020-09-27T18:15:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/resilience/</loc>
+    <lastmod>2020-09-27T18:15:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/spring-boot/</loc>
+    <lastmod>2020-09-27T18:15:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/timeouts-circuit-breakers-resilience4j/</loc>
+    <lastmod>2020-09-27T18:15:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/architecture/</loc>
+    <lastmod>2020-06-14T19:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/migrations/</loc>
+    <lastmod>2020-06-14T19:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/migrating-data-off-legacy-platform/</loc>
+    <lastmod>2020-06-14T19:00:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/consumer-driven-contract-tests/</loc>
+    <lastmod>2020-02-09T18:30:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/testing/</loc>
+    <lastmod>2020-02-09T18:30:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/devops/</loc>
     <lastmod>2019-10-20T18:00:00+02:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/tags/kubernetes/</loc>
     <lastmod>2019-10-20T18:00:00+02:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/blog/spring-boot-on-kubernetes/</loc>
-    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
-  </url><url>
-    <loc>https://miloradbozic.github.io/tags/spring-boot/</loc>
-    <lastmod>2019-10-20T18:00:00+02:00</lastmod>
-  </url><url>
-    <loc>https://miloradbozic.github.io/tags/</loc>
     <lastmod>2019-10-20T18:00:00+02:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/tags/messaging/</loc>
@@ -42,12 +114,6 @@
     <lastmod>2019-07-14T19:00:00+02:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/tags/api-gateway/</loc>
-    <lastmod>2019-04-28T18:20:00+02:00</lastmod>
-  </url><url>
-    <loc>https://miloradbozic.github.io/tags/architecture/</loc>
-    <lastmod>2019-04-28T18:20:00+02:00</lastmod>
-  </url><url>
-    <loc>https://miloradbozic.github.io/tags/microservices/</loc>
     <lastmod>2019-04-28T18:20:00+02:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/blog/api-gateway-facade/</loc>
@@ -103,12 +169,6 @@
   </url><url>
     <loc>https://miloradbozic.github.io/tags/networking/</loc>
     <lastmod>2018-05-20T20:00:00+02:00</lastmod>
-  </url><url>
-    <loc>https://miloradbozic.github.io/tags/career/</loc>
-    <lastmod>2017-12-17T17:00:00+01:00</lastmod>
-  </url><url>
-    <loc>https://miloradbozic.github.io/tags/teams/</loc>
-    <lastmod>2017-12-17T17:00:00+01:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/blog/lessons-first-in-house-engineer/</loc>
     <lastmod>2017-12-17T17:00:00+01:00</lastmod>

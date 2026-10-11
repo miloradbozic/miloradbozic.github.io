@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>performance on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/performance/</link>
+    <description>Recent content in performance on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 12 Dec 2021 17:30:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/performance/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>One big JSON.parse and every request waits: the Node.js event loop in practice</title>
+      <link>https://miloradbozic.github.io/blog/nodejs-event-loop-blocking/</link>
+      <pubDate>Sun, 12 Dec 2021 17:30:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/nodejs-event-loop-blocking/</guid>
+      <description>Coming to Node from Java, the concurrency model is the thing that takes longest to really feel. In a Spring Boot service, a slow request blocks its own thread, and the other two hundred threads carry on. In Node there&amp;rsquo;s one thread running your JavaScript. If one request keeps it busy for 800 ms, every other request on that process waits 800 ms. Your p99 latency goes up for everybody, and the slow request isn&amp;rsquo;t even the one that looks slow in the logs.</description>
+    </item>
+    
+    <item>
+      <title>Don&#39;t send the whole city: vector tiles for a map full of buildings</title>
+      <link>https://miloradbozic.github.io/blog/vector-tiles-buildings-map/</link>
+      <pubDate>Sun, 21 Feb 2021 18:40:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/vector-tiles-buildings-map/</guid>
+      <description>A change of scene: I&amp;rsquo;m now at Brightmarbles, working on Savills Maps, a mapping product for Savills, the real-estate company. Think a city map where every building is a shape you can click, with data about it: ownership, use, size, deals. Node.js and TypeScript on the backend, React on the front.
+After years of exams and queues it&amp;rsquo;s a very different kind of data, and the first lesson was about volume.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>Don&#39;t send the whole city: vector tiles for a map full of buildings | Milorad Bozic</title>
+    <meta name="description" content="Why a big GeoJSON response stops working, how vector tiles fix it, and generating them straight from PostGIS">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/vector-tiles-buildings-map/">Don&#39;t send the whole city: vector tiles for a map full of buildings</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        February 21, 2021
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">nodejs</span>
+        
+          <span class="badge bg-success">typescript</span>
+        
+          <span class="badge bg-success">maps</span>
+        
+          <span class="badge bg-success">postgis</span>
+        
+          <span class="badge bg-success">performance</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>A change of scene: I&rsquo;m now at Brightmarbles, working on Savills Maps, a mapping product for
+<strong>Savills</strong>, the real-estate company. Think a city map where every building is a shape you can click,
+with data about it: ownership, use, size, deals. Node.js and TypeScript on the backend, React on the
+front.</p>
+<p>After years of exams and queues it&rsquo;s a very different kind of data, and the first lesson was about
+volume.</p>
+<h2 id="the-naive-version">The naive version</h2>
+<p>The obvious API is &ldquo;give me the buildings in this area&rdquo; returning GeoJSON:</p>
+<pre tabindex="0"><code>GET /buildings?bbox=-0.15,51.50,-0.10,51.52
+</code></pre><p>It works fine when you&rsquo;re zoomed in on a few streets. Zoom out to a whole district and it&rsquo;s tens of
+thousands of polygons, each with dozens of coordinates. The response is many megabytes, the server
+spends its time building one enormous JSON string, the browser spends its time parsing it, and then
+the map tries to draw all of it, including details too small to see at that zoom.</p>
+<p>Every part of that is the wrong amount of work.</p>
+<h2 id="vector-tiles">Vector tiles</h2>
+<p>Map libraries solved this a long time ago with <strong>tiles</strong>. The world is split into a pyramid of square
+tiles: at zoom 0 one tile covers the whole world, at every next zoom level each tile splits into four.
+The client asks only for the tiles it&rsquo;s showing, at the zoom it&rsquo;s showing:</p>
+<pre tabindex="0"><code>GET /tiles/buildings/{z}/{x}/{y}.mvt
+</code></pre><p>A <strong>vector tile</strong> (Mapbox Vector Tile format, protobuf) contains the geometries for that square,
+already:</p>
+<ul>
+<li><strong>clipped</strong> to the tile, so a huge polygon is sent only in the pieces that are visible,</li>
+<li><strong>simplified</strong> for that zoom level, so you don&rsquo;t send detail smaller than a pixel,</li>
+<li><strong>encoded compactly</strong> as integers relative to the tile, not as JSON floats.</li>
+</ul>
+<p>The client (Mapbox GL in our case) renders them on the GPU and styles them itself, so the same tiles
+can be shown in different colours depending on what the user is looking at.</p>
+<h2 id="generating-tiles-from-postgis">Generating tiles from PostGIS</h2>
+<p>If your geometries are in PostGIS, you don&rsquo;t need a separate tile pipeline to start. PostGIS can
+build a tile directly in SQL with <code>ST_AsMVT</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">WITH</span> bounds <span style="color:#66d9ef">AS</span> (
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">SELECT</span> ST_TileEnvelope(<span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">1</span>, <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">2</span>, <span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">3</span>) <span style="color:#66d9ef">AS</span> geom      <span style="color:#75715e">-- z, x, y
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>),
+</span></span><span style="display:flex;"><span>mvtgeom <span style="color:#66d9ef">AS</span> (
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">SELECT</span>
+</span></span><span style="display:flex;"><span>    b.id,
+</span></span><span style="display:flex;"><span>    b.use_class,
+</span></span><span style="display:flex;"><span>    ST_AsMVTGeom(ST_Transform(b.geom, <span style="color:#ae81ff">3857</span>), bounds.geom) <span style="color:#66d9ef">AS</span> geom
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">FROM</span> buildings b, bounds
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">WHERE</span> b.geom <span style="color:#f92672">&amp;&amp;</span> ST_Transform(bounds.geom, <span style="color:#ae81ff">4326</span>)
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> ST_AsMVT(mvtgeom.<span style="color:#f92672">*</span>, <span style="color:#e6db74">&#39;buildings&#39;</span>) <span style="color:#66d9ef">FROM</span> mvtgeom;
+</span></span></code></pre></div><p>And the Node side is a thin handler that returns bytes:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ts" data-lang="ts"><span style="display:flex;"><span><span style="color:#a6e22e">app</span>.<span style="color:#66d9ef">get</span>(<span style="color:#e6db74">&#39;/tiles/buildings/:z/:x/:y.mvt&#39;</span>, <span style="color:#66d9ef">async</span> (<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">res</span>) <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> { <span style="color:#a6e22e">z</span>, <span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span> } <span style="color:#f92672">=</span> <span style="color:#a6e22e">parseTileParams</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">params</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> { <span style="color:#a6e22e">rows</span> } <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">pool</span>.<span style="color:#a6e22e">query</span>(<span style="color:#a6e22e">TILE_SQL</span>, [<span style="color:#a6e22e">z</span>, <span style="color:#a6e22e">x</span>, <span style="color:#a6e22e">y</span>]);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">tile</span>: <span style="color:#66d9ef">Buffer</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">rows</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">st_asmvt</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">setHeader</span>(<span style="color:#e6db74">&#39;Content-Type&#39;</span>, <span style="color:#e6db74">&#39;application/vnd.mapbox-vector-tile&#39;</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">setHeader</span>(<span style="color:#e6db74">&#39;Cache-Control&#39;</span>, <span style="color:#e6db74">&#39;public, max-age=3600&#39;</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">send</span>(<span style="color:#a6e22e">tile</span>);
+</span></span><span style="display:flex;"><span>});
+</span></span></code></pre></div><p>Three things make this fast enough:</p>
+<ul>
+<li>A <strong>spatial index</strong> (GiST) on the geometry column, so the <code>&amp;&amp;</code> bounding box filter is an index scan.</li>
+<li>Only the <strong>attributes the map needs for styling</strong> go in the tile: an id and a class. Everything else
+is loaded by id when the user clicks a building.</li>
+<li>At low zoom levels, a <strong>minimum size filter</strong> or a pre-simplified table, so zoomed out you don&rsquo;t
+query every shed in the city.</li>
+</ul>
+<h2 id="caching-is-the-real-win">Caching is the real win</h2>
+<p>A tile for a given <code>z/x/y</code> is the same for every user until the underlying data changes. That makes
+tiles perfect for HTTP caching: a CDN in front of the tile endpoint serves most requests without
+touching Node or Postgres at all.</p>
+<p>The question is invalidation: when a building changes, which tiles are now wrong? It&rsquo;s one tile per
+zoom level that contains the building, which is easy to compute. For data that changes rarely, a
+modest <code>max-age</code> and accepting a bit of staleness is simpler and good enough. Same question as
+<a href="/blog/elasticsearch-read-model-from-replica/">always</a>: how stale is OK, for whom?</p>
+<h2 id="the-pattern">The pattern</h2>
+<p>Don&rsquo;t send what the client can&rsquo;t show. Split the data so that the client asks for exactly what&rsquo;s on
+screen, at the detail it can display, and make those pieces cacheable. That&rsquo;s what tiles are, and the
+idea works far beyond maps.</p>
+
+          
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>

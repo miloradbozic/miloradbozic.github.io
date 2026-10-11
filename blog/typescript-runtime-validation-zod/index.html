@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>TypeScript types stop at the network: validating input with Zod | Milorad Bozic</title>
+    <meta name="description" content="Why `as User` is a lie at every API boundary, and how one schema gives you both runtime validation and static types">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/typescript-runtime-validation-zod/">TypeScript types stop at the network: validating input with Zod</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        May 16, 2021
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">typescript</span>
+        
+          <span class="badge bg-success">nodejs</span>
+        
+          <span class="badge bg-success">api</span>
+        
+          <span class="badge bg-success">validation</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>TypeScript makes a Node codebase much nicer to work in. But there&rsquo;s one place where it quietly
+stops helping, and it&rsquo;s exactly the place where most bugs come from: <strong>the boundary</strong>. Anything that
+comes from outside your process, HTTP request bodies, query strings, responses from other services,
+messages from a queue, environment variables, is <code>unknown</code> at runtime, no matter what type you put on it.</p>
+<h2 id="the-lie">The lie</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ts" data-lang="ts"><span style="display:flex;"><span><span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">post</span>(<span style="color:#e6db74">&#39;/searches&#39;</span>, <span style="color:#66d9ef">async</span> (<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">res</span>) <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">body</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span> <span style="color:#66d9ef">as</span> <span style="color:#a6e22e">SavedSearch</span>;   <span style="color:#75715e">// &lt;- trust me
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">searches</span>.<span style="color:#a6e22e">save</span>(<span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">userId</span>, <span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">bounds</span>, <span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">filters</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">sendStatus</span>(<span style="color:#ae81ff">201</span>);
+</span></span><span style="display:flex;"><span>});
+</span></span></code></pre></div><p><code>as SavedSearch</code> doesn&rsquo;t check anything. It tells the compiler to stop asking. If a client sends
+<code>bounds</code> as a string, or forgets <code>filters</code>, the code compiles fine and fails somewhere deeper, with an
+error that has nothing to do with the real cause. Or worse, it doesn&rsquo;t fail and saves garbage.</p>
+<p>The types describe what you <em>hope</em> arrives. You need something that checks what <em>actually</em> arrives.</p>
+<h2 id="one-schema-two-uses">One schema, two uses</h2>
+<p><a href="https://github.com/colinhacks/zod">Zod</a> lets you write a schema once, validate data against it at
+runtime, and <strong>derive the TypeScript type from the schema</strong>. So the type and the check can&rsquo;t drift apart.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ts" data-lang="ts"><span style="display:flex;"><span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">z</span> } <span style="color:#66d9ef">from</span> <span style="color:#e6db74">&#39;zod&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">Bounds</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">z</span>.<span style="color:#66d9ef">object</span>({
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">west</span>: <span style="color:#66d9ef">z.number</span>().<span style="color:#a6e22e">min</span>(<span style="color:#f92672">-</span><span style="color:#ae81ff">180</span>).<span style="color:#a6e22e">max</span>(<span style="color:#ae81ff">180</span>),
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">south</span>: <span style="color:#66d9ef">z.number</span>().<span style="color:#a6e22e">min</span>(<span style="color:#f92672">-</span><span style="color:#ae81ff">90</span>).<span style="color:#a6e22e">max</span>(<span style="color:#ae81ff">90</span>),
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">east</span>: <span style="color:#66d9ef">z.number</span>().<span style="color:#a6e22e">min</span>(<span style="color:#f92672">-</span><span style="color:#ae81ff">180</span>).<span style="color:#a6e22e">max</span>(<span style="color:#ae81ff">180</span>),
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">north</span>: <span style="color:#66d9ef">z.number</span>().<span style="color:#a6e22e">min</span>(<span style="color:#f92672">-</span><span style="color:#ae81ff">90</span>).<span style="color:#a6e22e">max</span>(<span style="color:#ae81ff">90</span>),
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">SavedSearch</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">z</span>.<span style="color:#66d9ef">object</span>({
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">name</span>: <span style="color:#66d9ef">z.string</span>().<span style="color:#a6e22e">min</span>(<span style="color:#ae81ff">1</span>).<span style="color:#a6e22e">max</span>(<span style="color:#ae81ff">100</span>),
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">bounds</span>: <span style="color:#66d9ef">Bounds</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">filters</span>: <span style="color:#66d9ef">z.object</span>({
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">useClass</span>: <span style="color:#66d9ef">z.array</span>(<span style="color:#a6e22e">z</span>.<span style="color:#66d9ef">enum</span>([<span style="color:#e6db74">&#39;office&#39;</span>, <span style="color:#e6db74">&#39;retail&#39;</span>, <span style="color:#e6db74">&#39;residential&#39;</span>, <span style="color:#e6db74">&#39;industrial&#39;</span>])).<span style="color:#66d9ef">default</span>([]),
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">minArea</span>: <span style="color:#66d9ef">z.number</span>().<span style="color:#a6e22e">positive</span>().<span style="color:#a6e22e">optional</span>(),
+</span></span><span style="display:flex;"><span>  }),
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">SavedSearch</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">z</span>.<span style="color:#66d9ef">infer</span>&lt;<span style="color:#f92672">typeof</span> <span style="color:#a6e22e">SavedSearch</span>&gt;;   <span style="color:#75715e">// the type, for free
+</span></span></span></code></pre></div><p>And at the boundary:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ts" data-lang="ts"><span style="display:flex;"><span><span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">post</span>(<span style="color:#e6db74">&#39;/searches&#39;</span>, <span style="color:#66d9ef">async</span> (<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">res</span>) <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">parsed</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">SavedSearch</span>.<span style="color:#a6e22e">safeParse</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">parsed</span>.<span style="color:#a6e22e">success</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">status</span>(<span style="color:#ae81ff">400</span>).<span style="color:#a6e22e">json</span>({ <span style="color:#a6e22e">errors</span>: <span style="color:#66d9ef">parsed.error.flatten</span>() });
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">search</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">parsed</span>.<span style="color:#a6e22e">data</span>;   <span style="color:#75715e">// typed as SavedSearch, and actually is one
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">searches</span>.<span style="color:#a6e22e">save</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">id</span>, <span style="color:#a6e22e">search</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">sendStatus</span>(<span style="color:#ae81ff">201</span>);
+</span></span><span style="display:flex;"><span>});
+</span></span></code></pre></div><p>Inside the function, <code>search</code> is a real <code>SavedSearch</code>. The client gets a 400 with a useful message
+instead of a 500 from three layers down.</p>
+<h2 id="a-small-middleware">A small middleware</h2>
+<p>Writing <code>safeParse</code> in every handler gets old, so we have a tiny helper:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ts" data-lang="ts"><span style="display:flex;"><span><span style="color:#66d9ef">function</span> <span style="color:#a6e22e">validate</span>&lt;<span style="color:#f92672">T</span> <span style="color:#a6e22e">extends</span> <span style="color:#a6e22e">z.ZodTypeAny</span>&gt;(<span style="color:#a6e22e">schema</span>: <span style="color:#66d9ef">T</span>) {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> (<span style="color:#a6e22e">req</span>: <span style="color:#66d9ef">Request</span>, <span style="color:#a6e22e">res</span>: <span style="color:#66d9ef">Response</span>, <span style="color:#a6e22e">next</span>: <span style="color:#66d9ef">NextFunction</span>) <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">parsed</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">schema</span>.<span style="color:#a6e22e">safeParse</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">parsed</span>.<span style="color:#a6e22e">success</span>) {
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">status</span>(<span style="color:#ae81ff">400</span>).<span style="color:#a6e22e">json</span>({ <span style="color:#a6e22e">errors</span>: <span style="color:#66d9ef">parsed.error.flatten</span>() });
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">parsed</span>.<span style="color:#a6e22e">data</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">next</span>();
+</span></span><span style="display:flex;"><span>  };
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">post</span>(<span style="color:#e6db74">&#39;/searches&#39;</span>, <span style="color:#a6e22e">validate</span>(<span style="color:#a6e22e">SavedSearch</span>), <span style="color:#a6e22e">saveSearchHandler</span>);
+</span></span></code></pre></div><h2 id="validate-everything-that-crosses-the-boundary">Validate everything that crosses the boundary</h2>
+<p>Not only request bodies:</p>
+<ul>
+<li><strong>Query strings.</strong> They&rsquo;re always strings. A small <code>z.preprocess(Number, z.number())</code> turns <code>&quot;12&quot;</code>
+into <code>12</code>, and rejects <code>&quot;abc&quot;</code>.</li>
+<li><strong>Responses from other services and third-party APIs.</strong> If an external API changes a field, you want
+an error at the point where its data enters your system, with the exact field named, not a
+<code>Cannot read property 'x' of undefined</code> somewhere in the UI. This is the runtime cousin of <a href="/blog/consumer-driven-contract-tests/">contract
+tests</a>.</li>
+<li><strong>Environment variables</strong>, at startup. A missing <code>DATABASE_URL</code> should crash the process
+immediately with a clear message, not at the first query an hour later.</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ts" data-lang="ts"><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">numberFromString</span> <span style="color:#f92672">=</span> (<span style="color:#a6e22e">fallback</span>: <span style="color:#66d9ef">number</span>) <span style="color:#f92672">=&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">z</span>.<span style="color:#a6e22e">preprocess</span>((<span style="color:#a6e22e">v</span>) <span style="color:#f92672">=&gt;</span> (<span style="color:#a6e22e">v</span> <span style="color:#f92672">===</span> <span style="color:#66d9ef">undefined</span> <span style="color:#f92672">?</span> <span style="color:#a6e22e">fallback</span> : <span style="color:#66d9ef">Number</span>(<span style="color:#a6e22e">v</span>)), <span style="color:#a6e22e">z</span>.<span style="color:#66d9ef">number</span>());
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">Env</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">z</span>.<span style="color:#66d9ef">object</span>({
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">DATABASE_URL</span>: <span style="color:#66d9ef">z.string</span>().<span style="color:#a6e22e">url</span>(),
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">PORT</span>: <span style="color:#66d9ef">numberFromString</span>(<span style="color:#ae81ff">3000</span>),
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">TILE_CACHE_SECONDS</span>: <span style="color:#66d9ef">numberFromString</span>(<span style="color:#ae81ff">3600</span>),
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">export</span> <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">env</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">Env</span>.<span style="color:#a6e22e">parse</span>(<span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">env</span>);
+</span></span></code></pre></div><h2 id="parse-dont-validate">Parse, don&rsquo;t validate</h2>
+<p>The idea behind all this has a nice name from the Haskell world: <em>parse, don&rsquo;t validate</em>. Don&rsquo;t just
+check the data and keep passing around the loose thing you got. Turn it into a value of a precise type
+once, at the edge, and from then on the rest of the code can trust it.</p>
+<p>TypeScript gives you the types. Something like Zod makes them true.</p>
+
+          
+          
+            <div class="related-posts mt-4 py-3">
+              <h5>Related Posts</h5>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      February 21, 2021
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/vector-tiles-buildings-map/">Don&rsquo;t send the whole city: vector tiles for a map full of buildings</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+            </div>
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>

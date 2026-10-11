@@ -6,7 +6,38 @@
     <description>Recent content in microservices on Milorad Bozic</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Sun, 28 Apr 2019 18:20:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/microservices/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 27 Sep 2020 18:15:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/microservices/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Timeouts, retries and circuit breakers with Resilience4j</title>
+      <link>https://miloradbozic.github.io/blog/timeouts-circuit-breakers-resilience4j/</link>
+      <pubDate>Sun, 27 Sep 2020 18:15:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/timeouts-circuit-breakers-resilience4j/</guid>
+      <description>In a system of services, a dependency that is down is the easy case: the call fails quickly and you handle the error. The hard case is a dependency that is slow. Every call waits. Threads pile up waiting. The calling service runs out of threads and stops responding. Now its callers are waiting. One slow database query turns into an outage three services away.
+The tools for this are old and well known: timeouts, retries, circuit breakers, bulkheads.</description>
+    </item>
+    
+    <item>
+      <title>Moving data off a legacy platform without a big bang</title>
+      <link>https://miloradbozic.github.io/blog/migrating-data-off-legacy-platform/</link>
+      <pubDate>Sun, 14 Jun 2020 19:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/migrating-data-off-legacy-platform/</guid>
+      <description>Moving code from a legacy platform to new services is the part everyone talks about. With the gateway in front, you can route one endpoint at a time to the new service. Moving the data is harder, because for a while it has to live in two places, and both places think they&amp;rsquo;re right.
+The &amp;ldquo;big bang&amp;rdquo; version: announce downtime for a weekend, stop everything, run a migration script, switch, hope.</description>
+    </item>
+    
+    <item>
+      <title>Contract tests: how services stop breaking each other</title>
+      <link>https://miloradbozic.github.io/blog/consumer-driven-contract-tests/</link>
+      <pubDate>Sun, 09 Feb 2020 18:30:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/consumer-driven-contract-tests/</guid>
+      <description>With one monolith, if you rename a field, the compiler tells you everywhere it&amp;rsquo;s used. With twenty services, nobody tells you. Your tests pass, your service deploys, and another service that reads that field starts failing in production. The compiler&amp;rsquo;s job is now yours.
+The usual answers are not great:
+Unit tests with mocks test your service against your idea of the other service. If your idea is wrong, the tests are green and wrong.</description>
+    </item>
+    
     <item>
       <title>One door for every client: an API gateway as a facade</title>
       <link>https://miloradbozic.github.io/blog/api-gateway-facade/</link>

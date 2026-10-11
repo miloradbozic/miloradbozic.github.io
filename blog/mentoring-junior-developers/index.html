@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>Mentoring two junior developers: what actually helped | Milorad Bozic</title>
+    <meta name="description" content="Notes from a year of mentoring: small real tasks, reviews that teach, pairing, and letting people get stuck (a little)">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/mentoring-junior-developers/">Mentoring two junior developers: what actually helped</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        September 19, 2021
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">mentoring</span>
+        
+          <span class="badge bg-success">teams</span>
+        
+          <span class="badge bg-success">code-review</span>
+        
+          <span class="badge bg-success">career</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>For most of this year I&rsquo;ve been mentoring two junior developers on our team. I had done bits of
+this before, a code review here, an explanation there, but never as an actual responsibility for
+someone&rsquo;s growth. Here&rsquo;s what I think worked, and what I&rsquo;d do differently.</p>
+<h2 id="real-work-sized-right">Real work, sized right</h2>
+<p>The temptation is to give juniors &ldquo;safe&rdquo; work: small bugs, copy changes, tests nobody needs. It&rsquo;s safe,
+and it teaches almost nothing, because there&rsquo;s no real decision in it.</p>
+<p>What worked better: <strong>real features, cut small</strong>. A new filter on the map, end to end: the query,
+the API endpoint, the <a href="/blog/typescript-runtime-validation-zod/">validation</a>, the UI. Small enough to
+finish in a few days, big enough to touch every layer. They learn how the system fits together, and
+they ship something people use, which matters more for motivation than any amount of praise.</p>
+<h2 id="pairing-but-with-them-driving">Pairing, but with them driving</h2>
+<p>When we pair, they have the keyboard. If I drive, they watch me be fast and learn mostly that I&rsquo;m fast.
+If they drive, I see exactly where they hesitate, and that&rsquo;s where the useful conversation is.</p>
+<p>It&rsquo;s slower. It&rsquo;s also the only way I&rsquo;ve found to learn <em>how</em> someone thinks about a problem, not just
+whether they got to the answer.</p>
+<h2 id="code-review-that-teaches">Code review that teaches</h2>
+<p>A review comment like &ldquo;change this to a map&rdquo; fixes the code. A comment like &ldquo;this loops over all
+buildings for every search result, so it&rsquo;s O(n·m). A <code>Map</code> keyed by id makes the lookup constant; worth it
+here because n can be thousands&rdquo; fixes the code <em>and</em> the next ten pieces of code.</p>
+<p>A few rules I try to follow:</p>
+<ul>
+<li><strong>Explain why</strong>, at least the first time a type of comment comes up.</li>
+<li><strong>Label what&rsquo;s blocking and what&rsquo;s taste.</strong> &ldquo;nit:&rdquo; for preferences, so they know which comments
+they&rsquo;re free to ignore. Otherwise every comment looks like an order.</li>
+<li><strong>Ask instead of tell</strong> when I&rsquo;m not sure: &ldquo;what happens here if the request times out?&rdquo; They often
+find the problem themselves, and remember it much better.</li>
+<li><strong>Say what&rsquo;s good.</strong> Not as a trick to soften the rest, but because they really don&rsquo;t know which of
+their choices were good ones.</li>
+</ul>
+<h2 id="let-them-get-stuck-a-little">Let them get stuck, a little</h2>
+<p>When someone is stuck, it&rsquo;s very easy to just give the answer. Sometimes that&rsquo;s right. But being stuck
+for a while, then finding it, is how you learn to debug.</p>
+<p>The rule we settled on: try alone for a fixed time (an hour, roughly), and write down what you tried.
+After that, ask, no guilt. The written list is useful on its own: half the time, writing down &ldquo;what I
+tried&rdquo; shows the answer. The other half, it tells me exactly where to start.</p>
+<h2 id="teach-the-system-not-only-the-code">Teach the system, not only the code</h2>
+<p>Juniors usually learn syntax and frameworks quickly. What takes longer, and what nobody teaches, is the
+stuff around the code:</p>
+<ul>
+<li>how a request gets from the browser to the database and back,</li>
+<li>where the logs are and how to read them,</li>
+<li>what happens on deploy,</li>
+<li>why we <a href="/blog/vector-tiles-buildings-map/">cache tiles</a> but not search results.</li>
+</ul>
+<p>A one-hour session drawing the whole system on a whiteboard (well, a shared screen) was more useful than
+any single code review.</p>
+<h2 id="what-id-do-differently">What I&rsquo;d do differently</h2>
+<ul>
+<li><strong>Set goals explicitly</strong> at the start. &ldquo;Get better&rdquo; is not a goal. &ldquo;Can take a feature from ticket to
+production without help by the end of the quarter&rdquo; is.</li>
+<li><strong>Check in regularly, outside of code.</strong> Short weekly one-to-ones, not only conversations when
+something is broken.</li>
+<li><strong>Hand over ownership earlier.</strong> Once one of them knew a part of the codebase well, I should have made
+them the person others ask about it. Being the expert on something, even something small, does a lot.</li>
+</ul>
+<h2 id="what-i-got-out-of-it">What I got out of it</h2>
+<p>Explaining things you &ldquo;just know&rdquo; forces you to find out if you actually understand them. More than once
+I started explaining why we do something, and halfway through realised we shouldn&rsquo;t be doing it.</p>
+<p>And it&rsquo;s genuinely satisfying to see someone review <em>your</em> pull request a few months later and find a real
+bug in it.</p>
+
+          
+          
+            <div class="related-posts mt-4 py-3">
+              <h5>Related Posts</h5>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      December 17, 2017
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/lessons-first-in-house-engineer/">What I learned as the first in-house engineer</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+            </div>
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>

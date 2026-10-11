@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>resilience on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/resilience/</link>
+    <description>Recent content in resilience on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 27 Sep 2020 18:15:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/resilience/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Timeouts, retries and circuit breakers with Resilience4j</title>
+      <link>https://miloradbozic.github.io/blog/timeouts-circuit-breakers-resilience4j/</link>
+      <pubDate>Sun, 27 Sep 2020 18:15:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/timeouts-circuit-breakers-resilience4j/</guid>
+      <description>In a system of services, a dependency that is down is the easy case: the call fails quickly and you handle the error. The hard case is a dependency that is slow. Every call waits. Threads pile up waiting. The calling service runs out of threads and stops responding. Now its callers are waiting. One slow database query turns into an outage three services away.
+The tools for this are old and well known: timeouts, retries, circuit breakers, bulkheads.</description>
+    </item>
+    
+  </channel>
+</rss>

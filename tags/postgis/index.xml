@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>postgis on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/postgis/</link>
+    <description>Recent content in postgis on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 21 Feb 2021 18:40:00 +0100</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/postgis/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Don&#39;t send the whole city: vector tiles for a map full of buildings</title>
+      <link>https://miloradbozic.github.io/blog/vector-tiles-buildings-map/</link>
+      <pubDate>Sun, 21 Feb 2021 18:40:00 +0100</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/vector-tiles-buildings-map/</guid>
+      <description>A change of scene: I&amp;rsquo;m now at Brightmarbles, working on Savills Maps, a mapping product for Savills, the real-estate company. Think a city map where every building is a shape you can click, with data about it: ownership, use, size, deals. Node.js and TypeScript on the backend, React on the front.
+After years of exams and queues it&amp;rsquo;s a very different kind of data, and the first lesson was about volume.</description>
+    </item>
+    
+  </channel>
+</rss>

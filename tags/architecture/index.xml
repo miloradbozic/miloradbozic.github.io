@@ -6,7 +6,17 @@
     <description>Recent content in architecture on Milorad Bozic</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Sun, 28 Apr 2019 18:20:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/architecture/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 14 Jun 2020 19:00:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/architecture/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Moving data off a legacy platform without a big bang</title>
+      <link>https://miloradbozic.github.io/blog/migrating-data-off-legacy-platform/</link>
+      <pubDate>Sun, 14 Jun 2020 19:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/migrating-data-off-legacy-platform/</guid>
+      <description>Moving code from a legacy platform to new services is the part everyone talks about. With the gateway in front, you can route one endpoint at a time to the new service. Moving the data is harder, because for a while it has to live in two places, and both places think they&amp;rsquo;re right.
+The &amp;ldquo;big bang&amp;rdquo; version: announce downtime for a weekend, stop everything, run a migration script, switch, hope.</description>
+    </item>
+    
     <item>
       <title>One door for every client: an API gateway as a facade</title>
       <link>https://miloradbozic.github.io/blog/api-gateway-facade/</link>

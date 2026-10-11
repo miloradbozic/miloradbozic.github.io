@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>One big JSON.parse and every request waits: the Node.js event loop in practice | Milorad Bozic</title>
+    <meta name="description" content="What blocks the event loop, how to see it happening, and three ways out: streaming, smaller units of work, and worker threads">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/nodejs-event-loop-blocking/">One big JSON.parse and every request waits: the Node.js event loop in practice</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        December 12, 2021
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">nodejs</span>
+        
+          <span class="badge bg-success">performance</span>
+        
+          <span class="badge bg-success">typescript</span>
+        
+          <span class="badge bg-success">concurrency</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>Coming to Node from Java, the concurrency model is the thing that takes longest to really feel. In a
+Spring Boot service, a slow request blocks its own thread, and the other two hundred threads carry on.
+In Node there&rsquo;s <strong>one</strong> thread running your JavaScript. If one request keeps it busy for 800 ms, every
+other request on that process waits 800 ms. Your p99 latency goes up for everybody, and the slow
+request isn&rsquo;t even the one that looks slow in the logs.</p>
+<p>Map data is very good at making this happen.</p>
+<h2 id="what-blocks-the-event-loop">What blocks the event loop</h2>
+<p>Anything synchronous and CPU-heavy:</p>
+<ul>
+<li><code>JSON.parse</code> / <code>JSON.stringify</code> of a big payload. A large GeoJSON FeatureCollection can take hundreds
+of milliseconds, and it&rsquo;s one uninterruptible call.</li>
+<li>Geometry work in JavaScript: simplifying, intersecting or computing areas for thousands of polygons.</li>
+<li>Sorting or grouping large arrays.</li>
+<li>Sync APIs: <code>fs.readFileSync</code>, <code>crypto.pbkdf2Sync</code>, <code>zlib.gzipSync</code>, in a request path.</li>
+<li>A regex with catastrophic backtracking on user input.</li>
+</ul>
+<p>I/O is fine. Waiting on Postgres or an HTTP call doesn&rsquo;t block anything; that&rsquo;s what Node is good at.
+It&rsquo;s the work <em>between</em> awaits that counts.</p>
+<h2 id="seeing-it">Seeing it</h2>
+<p>You can&rsquo;t fix what you can&rsquo;t see, and event loop blocking looks like &ldquo;everything is a bit slow
+sometimes&rdquo;. Node has a built-in way to measure it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ts" data-lang="ts"><span style="display:flex;"><span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">monitorEventLoopDelay</span> } <span style="color:#66d9ef">from</span> <span style="color:#e6db74">&#39;perf_hooks&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">histogram</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">monitorEventLoopDelay</span>({ <span style="color:#a6e22e">resolution</span>: <span style="color:#66d9ef">20</span> });
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">histogram</span>.<span style="color:#a6e22e">enable</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">setInterval</span>(() <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">metrics</span>.<span style="color:#a6e22e">gauge</span>(<span style="color:#e6db74">&#39;eventloop.delay.p99.ms&#39;</span>, <span style="color:#a6e22e">histogram</span>.<span style="color:#a6e22e">percentile</span>(<span style="color:#ae81ff">99</span>) <span style="color:#f92672">/</span> <span style="color:#ae81ff">1</span><span style="color:#a6e22e">e6</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">metrics</span>.<span style="color:#a6e22e">gauge</span>(<span style="color:#e6db74">&#39;eventloop.delay.max.ms&#39;</span>, <span style="color:#a6e22e">histogram</span>.<span style="color:#a6e22e">max</span> <span style="color:#f92672">/</span> <span style="color:#ae81ff">1</span><span style="color:#a6e22e">e6</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">histogram</span>.<span style="color:#a6e22e">reset</span>();
+</span></span><span style="display:flex;"><span>}, <span style="color:#ae81ff">10</span><span style="color:#a6e22e">_000</span>);
+</span></span></code></pre></div><p>If the p99 delay is in the hundreds of milliseconds, something is hogging the thread. To find <em>what</em>,
+run with <code>--cpu-prof</code> (or attach Chrome DevTools to <code>--inspect</code>) under realistic load and look for the
+wide bars in the flame graph.</p>
+<h2 id="way-out-1-dont-do-the-work">Way out 1: don&rsquo;t do the work</h2>
+<p>The best fix is usually to not have a huge payload in the first place. That&rsquo;s what <a href="/blog/vector-tiles-buildings-map/">vector
+tiles</a> did for the map: instead of building and serializing one giant
+GeoJSON response, each request produces a small binary tile, and Postgres does the geometry work, not
+the Node process.</p>
+<p>Same idea elsewhere: paginate, select only the fields you need, let the database aggregate.</p>
+<h2 id="way-out-2-stream-instead-of-buffering">Way out 2: stream instead of buffering</h2>
+<p>When you really have to send a lot, don&rsquo;t build it in memory and <code>JSON.stringify</code> it in one go. Stream it:
+rows come out of the database cursor and are written to the response as they arrive. Memory stays flat,
+and the work is split into many small pieces with I/O in between, so other requests get their turn.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ts" data-lang="ts"><span style="display:flex;"><span><span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">pipeline</span> } <span style="color:#66d9ef">from</span> <span style="color:#e6db74">&#39;stream/promises&#39;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">import</span> <span style="color:#a6e22e">QueryStream</span> <span style="color:#66d9ef">from</span> <span style="color:#e6db74">&#39;pg-query-stream&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">app</span>.<span style="color:#66d9ef">get</span>(<span style="color:#e6db74">&#39;/export/buildings.ndjson&#39;</span>, <span style="color:#66d9ef">async</span> (<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">res</span>) <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">client</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">pool</span>.<span style="color:#a6e22e">connect</span>();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">rows</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">query</span>(<span style="color:#66d9ef">new</span> <span style="color:#a6e22e">QueryStream</span>(<span style="color:#a6e22e">EXPORT_SQL</span>, [<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">query</span>.<span style="color:#a6e22e">area</span>]));
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">setHeader</span>(<span style="color:#e6db74">&#39;Content-Type&#39;</span>, <span style="color:#e6db74">&#39;application/x-ndjson&#39;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">pipeline</span>(<span style="color:#a6e22e">rows</span>, <span style="color:#a6e22e">toNdjson</span>(), <span style="color:#a6e22e">res</span>);
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">release</span>();
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>});
+</span></span></code></pre></div><p>Newline-delimited JSON (one object per line) is also much friendlier for the client than one huge array,
+because it can be parsed line by line.</p>
+<h2 id="way-out-3-move-cpu-work-off-the-main-thread">Way out 3: move CPU work off the main thread</h2>
+<p>Some work really is CPU-heavy and can&rsquo;t be avoided: a geometry calculation, generating a report. For
+that, Node has <strong>worker threads</strong>. The main thread stays free to handle requests, and the heavy part runs
+in parallel on another core.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ts" data-lang="ts"><span style="display:flex;"><span><span style="color:#66d9ef">import</span> <span style="color:#a6e22e">Piscina</span> <span style="color:#66d9ef">from</span> <span style="color:#e6db74">&#39;piscina&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">pool</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">Piscina</span>({ <span style="color:#a6e22e">filename</span>: <span style="color:#66d9ef">require.resolve</span>(<span style="color:#e6db74">&#39;./geometry-worker&#39;</span>) });
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">post</span>(<span style="color:#e6db74">&#39;/analysis/catchment&#39;</span>, <span style="color:#a6e22e">validate</span>(<span style="color:#a6e22e">CatchmentRequest</span>), <span style="color:#66d9ef">async</span> (<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">res</span>) <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">result</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">pool</span>.<span style="color:#a6e22e">run</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span>);   <span style="color:#75715e">// runs in a worker thread
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">json</span>(<span style="color:#a6e22e">result</span>);
+</span></span><span style="display:flex;"><span>});
+</span></span></code></pre></div><p>A pool library like Piscina handles the queue and the number of workers. Two things to keep in mind:
+data passed to a worker is copied (structured clone), so passing a giant object can cost as much as you
+saved; and a pool has a limit, so under load requests queue up for workers. That&rsquo;s fine, it&rsquo;s explicit
+back-pressure instead of one request silently freezing all the others.</p>
+<h2 id="summary">Summary</h2>
+<ul>
+<li>Node runs your JavaScript on one thread. CPU work in one request delays all of them.</li>
+<li>Measure event loop delay. It&rsquo;s the metric that explains &ldquo;everything is slow sometimes&rdquo;.</li>
+<li>Avoid the work (smaller payloads, let the database do it), stream what&rsquo;s big, and move unavoidable CPU
+work to worker threads.</li>
+</ul>
+<p>Different runtime, same lesson as <a href="/blog/timeouts-circuit-breakers-resilience4j/">timeouts and bulkheads</a>
+on the JVM: don&rsquo;t let one expensive thing use up the resource everyone else needs.</p>
+
+          
+          
+            <div class="related-posts mt-4 py-3">
+              <h5>Related Posts</h5>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      February 21, 2021
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/vector-tiles-buildings-map/">Don&rsquo;t send the whole city: vector tiles for a map full of buildings</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      May 16, 2021
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/typescript-runtime-validation-zod/">TypeScript types stop at the network: validating input with Zod</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+            </div>
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>

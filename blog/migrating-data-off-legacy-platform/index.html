@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>Moving data off a legacy platform without a big bang | Milorad Bozic</title>
+    <meta name="description" content="Backfill, keep in sync, verify, switch reads, switch writes. A data migration plan where every step can be rolled back">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/migrating-data-off-legacy-platform/">Moving data off a legacy platform without a big bang</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        June 14, 2020
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">distributed-systems</span>
+        
+          <span class="badge bg-success">migrations</span>
+        
+          <span class="badge bg-success">microservices</span>
+        
+          <span class="badge bg-success">architecture</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>Moving <strong>code</strong> from a legacy platform to new services is the part everyone talks about. With the
+<a href="/blog/api-gateway-facade/">gateway in front</a>, you can route one endpoint at a time to the new
+service. Moving the <strong>data</strong> is harder, because for a while it has to live in two places, and both
+places think they&rsquo;re right.</p>
+<p>The &ldquo;big bang&rdquo; version: announce downtime for a weekend, stop everything, run a migration script,
+switch, hope. It works for small systems. For a platform that is used around the clock, by people on
+ships in every time zone, a weekend of downtime isn&rsquo;t an option, and &ldquo;hope&rdquo; is not a rollback plan.</p>
+<p>This is the step-by-step approach I&rsquo;d use for any data migration like this now.</p>
+<h2 id="step-0-decide-who-owns-the-data-at-every-moment">Step 0: decide who owns the data at every moment</h2>
+<p>At any point during the migration, <strong>exactly one system is the source of truth</strong> for a given piece of
+data, and everyone knows which. Most migration bugs come from a period where both systems accept
+writes and nobody decided which one wins.</p>
+<h2 id="step-1-backfill">Step 1: backfill</h2>
+<p>Copy all existing data from the legacy store into the new service&rsquo;s store. Some rules that save pain:</p>
+<ul>
+<li><strong>Idempotent</strong>: the backfill can be re-run, and running it twice gives the same result (upserts by
+the legacy id, kept as a column in the new store).</li>
+<li><strong>Resumable</strong>: it works in batches with <a href="/blog/elasticsearch-read-model-from-replica/">keyset pagination</a>
+and remembers where it stopped.</li>
+<li><strong>Throttled</strong>: it must not slow down the legacy system, which is still serving all the traffic.</li>
+<li><strong>Transforming</strong>: this is where the old model becomes the new model. Records that can&rsquo;t be
+transformed go to a reject list for a human, instead of stopping the whole run.</li>
+</ul>
+<h2 id="step-2-keep-it-in-sync">Step 2: keep it in sync</h2>
+<p>While the backfill runs, and after it, the legacy system keeps changing. You need changes to flow to the
+new store too. Options:</p>
+<ul>
+<li><strong>Dual writes from the application</strong>: every write goes to both. Simple to start, but if one write
+succeeds and the other fails, they drift, and there&rsquo;s no transaction across the two stores.</li>
+<li><strong>Change events</strong>: the legacy system publishes &ldquo;this record changed&rdquo; events, and a consumer applies
+them to the new store. Better, if you can change the legacy code.</li>
+<li><strong>Change data capture</strong> from the legacy database&rsquo;s log. The most complete, also the most
+infrastructure.</li>
+</ul>
+<p>Whichever you choose, the sync consumer must be idempotent and must handle events arriving out of
+order (apply only if newer than what&rsquo;s stored, using a version or update timestamp from the source).</p>
+<h2 id="step-3-verify">Step 3: verify</h2>
+<p>Before trusting the new store, compare. A job that walks both stores and reports differences: missing
+records, different values, records that exist only in the new store. Run it until the difference is
+zero, or every remaining difference is understood.</p>
+<p>This step is the one teams skip because &ldquo;the sync works&rdquo;. It&rsquo;s also the one that finds the
+timezone bug, the encoding bug and the &ldquo;this field was sometimes <code>null</code> and sometimes <code>&quot;&quot;</code>&rdquo; bug.</p>
+<h2 id="step-4-switch-reads-shadow-first">Step 4: switch reads (shadow first)</h2>
+<p>Now the new service starts <strong>reading</strong> from its own store, still with legacy as the source of truth for
+writes.</p>
+<p>A useful middle step is <strong>shadow reads</strong>: serve the response from legacy as before, but also read from
+the new service in the background and log when the two responses differ. Real traffic, zero user
+impact, and a list of differences you&rsquo;d never find with test data.</p>
+<p>When the shadow differences are gone, switch reads for real. Rollback is one route in the gateway.</p>
+<h2 id="step-5-switch-writes">Step 5: switch writes</h2>
+<p>The last and scariest step: the new service becomes the source of truth. Writes go there first. If the
+legacy system still needs the data (other legacy features read it), the sync now runs in the <strong>other
+direction</strong>, from new to old, until nothing on the legacy side reads it anymore.</p>
+<p>Do it per slice if you can: per customer, per tenant, per fleet. A small slice first, watch it, then the
+rest.</p>
+<h2 id="step-6-delete">Step 6: delete</h2>
+<p>Remove the reverse sync, the legacy tables, the shadow code. A migration isn&rsquo;t finished until the old
+path is gone, otherwise you maintain both forever.</p>
+<h2 id="why-this-is-worth-the-effort">Why this is worth the effort</h2>
+<p>Every step is small, and every step except the last has a cheap rollback. The total takes much longer
+than a big-bang weekend. But nobody has to be awake at 3 am hoping a script finishes, and the users
+never notice that the data they&rsquo;re looking at moved from one system to another underneath them.</p>
+
+          
+          
+            <div class="related-posts mt-4 py-3">
+              <h5>Related Posts</h5>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      April 28, 2019
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/api-gateway-facade/">One door for every client: an API gateway as a facade</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      February 9, 2020
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/consumer-driven-contract-tests/">Contract tests: how services stop breaking each other</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      May 20, 2018
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/exams-over-satellite-internet/">Exams over satellite internet: designing for the worst network you can imagine</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+            </div>
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>

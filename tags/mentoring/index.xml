@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>mentoring on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/mentoring/</link>
+    <description>Recent content in mentoring on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 19 Sep 2021 18:00:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/mentoring/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Mentoring two junior developers: what actually helped</title>
+      <link>https://miloradbozic.github.io/blog/mentoring-junior-developers/</link>
+      <pubDate>Sun, 19 Sep 2021 18:00:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/mentoring-junior-developers/</guid>
+      <description>For most of this year I&amp;rsquo;ve been mentoring two junior developers on our team. I had done bits of this before, a code review here, an explanation there, but never as an actual responsibility for someone&amp;rsquo;s growth. Here&amp;rsquo;s what I think worked, and what I&amp;rsquo;d do differently.
+Real work, sized right The temptation is to give juniors &amp;ldquo;safe&amp;rdquo; work: small bugs, copy changes, tests nobody needs. It&amp;rsquo;s safe, and it teaches almost nothing, because there&amp;rsquo;s no real decision in it.</description>
+    </item>
+    
+  </channel>
+</rss>
