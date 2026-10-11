@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>What I learned as the first in-house engineer | Milorad Bozic</title>
+    <meta name="description" content="Almost three years of taking a codebase back from an agency, growing a team around it, and slowly turning a monolith into something calmer">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/lessons-first-in-house-engineer/">What I learned as the first in-house engineer</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        December 17, 2017
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">career</span>
+        
+          <span class="badge bg-success">architecture</span>
+        
+          <span class="badge bg-success">teams</span>
+        
+          <span class="badge bg-success">distributed-systems</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>At the end of this month I&rsquo;m leaving HolaLuz. I joined when the company was small and its software
+was built by an external agency. I was the first engineer hired to own it in-house. When I leave,
+there&rsquo;s a team of developers, a CI pipeline, infrastructure as code, and a system that fails in
+smaller and more boring ways than it used to.</p>
+<p>This is not a goodbye post, it&rsquo;s notes for myself on what I would tell someone starting in the
+same position.</p>
+<h2 id="1-move-the-code-before-you-change-it">1. Move the code before you change it</h2>
+<p>The first months were not about features. They were about making the codebase <em>ours</em>: one
+repository that we control, a process to get changes into production that doesn&rsquo;t depend on someone
+outside the company, and an inventory of what runs where. We moved repositories more than once
+(Assembla, then Bitbucket, then GitHub), and every move was cheap because history came with it.</p>
+<p>You can&rsquo;t improve something you can&rsquo;t deploy with confidence. Ownership first.</p>
+<h2 id="2-ci-before-refactoring">2. CI before refactoring</h2>
+<p>Before touching the big parts, we added a build that runs on every change: lint, PHPUnit, and
+static analysis (phpcs, phpmd, copy-paste detection). It was an Ant build, nothing fancy. The
+static analysis was noisy at the start, and we did not fix everything. What we did was stop the
+numbers from getting worse.</p>
+<p>Together with a git-flow style process (feature branches, release branches, hotfix branches) it
+gave us something we didn&rsquo;t have before: a version number for what&rsquo;s in production, and a way to
+say &ldquo;this broke in 1.43, here&rsquo;s the diff&rdquo;.</p>
+<h2 id="3-the-external-system-will-be-down-design-for-it">3. The external system will be down. Design for it</h2>
+<p>A big part of our work is talking to systems we don&rsquo;t control: the ERP, the bank&rsquo;s payment gateway,
+the CRM, the email provider. In the beginning, a lot of that happened inside the user&rsquo;s request. If
+the ERP was slow, sign-up was slow. If it was down, sign-up failed.</p>
+<p>The fix, every time, was the same pattern:</p>
+<ul>
+<li>accept the user&rsquo;s action and store it locally,</li>
+<li>put a job on a queue to talk to the external system,</li>
+<li>retry with backoff, and alert a human when retries run out.</li>
+</ul>
+<p>Sending a new contract to the ERP is a queued job now. The customer gets &ldquo;thanks, you&rsquo;re signed up&rdquo;
+in milliseconds, whether the ERP is up or not. It&rsquo;s eventually consistent, and that turned out to be
+completely fine for the business once we explained it in those terms: &ldquo;it will be in the ERP within
+minutes, and if it isn&rsquo;t, we&rsquo;ll know.&rdquo;</p>
+<h2 id="4-make-every-job-safe-to-run-twice">4. Make every job safe to run twice</h2>
+<p>Once things run on queues, things run twice. Messages get redelivered, workers die halfway,
+someone clicks &ldquo;retry&rdquo; in a panic. I wrote about this with the <a href="/blog/invoice-fan-out-sqs/">invoice
+fan-out</a> and the <a href="/blog/oauth2-token-keepalive-laravel-scheduler/">OAuth token
+keep-alive</a>, and it&rsquo;s the single most useful habit
+I picked up here. Upserts instead of inserts, natural keys instead of generated ones, a cheap lock
+in front of expensive work.</p>
+<h2 id="5-split-reads-before-you-split-writes">5. Split reads before you split writes</h2>
+<p>We didn&rsquo;t do a big &ldquo;rewrite into microservices&rdquo;. We took things out one at a time, starting with
+the safest: <a href="/blog/elasticsearch-read-model-from-replica/">search as a read model</a>, reports, the
+queue workers. Each step taught us something about running more than one moving part, while the
+risk stayed small. If I started again, I would do it in the same order.</p>
+<h2 id="6-ops-is-part-of-the-job">6. Ops is part of the job</h2>
+<p>For a long time I was the person who wrote the feature <em>and</em> the person who got the alert when it
+broke. It&rsquo;s tiring, but it made me write different code: more logging at the boundaries, timeouts
+on every outgoing call, commands that can be re-run safely. <a href="/blog/immutable-servers-packer-ansible-terraform/">Immutable
+servers</a> came from the same place. I didn&rsquo;t
+want to be the only person who knew what was on web-3.</p>
+<h2 id="7-the-team-is-the-system">7. The team is the system</h2>
+<p>The best technical decision I made here was hiring people who are better than me at things I&rsquo;m
+weak at, and then writing things down so I wasn&rsquo;t a bottleneck. Code review, a README per service,
+runbooks for the jobs that fail at night. The codebase grew from one in-house engineer to many,
+and the parts that aged best are the ones where several people felt they owned them.</p>
+<h2 id="whats-next">What&rsquo;s next</h2>
+<p>A new job in the new year, and I expect a lot more of what the last year was slowly turning into:
+services, queues, and the question &ldquo;what happens when this other thing is down?&rdquo; More on that here.</p>
+<p>Gracias, Barcelona.</p>
+
+          
+          
+            <div class="related-posts mt-4 py-3">
+              <h5>Related Posts</h5>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      August 20, 2017
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/elasticsearch-read-model-from-replica/">Our first step out of the monolith was a read model</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      June 11, 2017
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/invoice-fan-out-sqs/">From a day to an hour: fanning out invoice work over SQS</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+            </div>
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>

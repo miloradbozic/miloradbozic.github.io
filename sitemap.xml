@@ -6,10 +6,70 @@
     <lastmod>2026-10-05T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/</loc>
-    <lastmod>2017-04-09T18:40:00+02:00</lastmod>
+    <lastmod>2017-12-17T17:00:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/architecture/</loc>
+    <lastmod>2017-12-17T17:00:00+01:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/blog/</loc>
-    <lastmod>2017-04-09T18:40:00+02:00</lastmod>
+    <lastmod>2017-12-17T17:00:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/career/</loc>
+    <lastmod>2017-12-17T17:00:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/distributed-systems/</loc>
+    <lastmod>2017-12-17T17:00:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/</loc>
+    <lastmod>2017-12-17T17:00:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/teams/</loc>
+    <lastmod>2017-12-17T17:00:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/lessons-first-in-house-engineer/</loc>
+    <lastmod>2017-12-17T17:00:00+01:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/ansible/</loc>
+    <lastmod>2017-10-15T18:45:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/aws/</loc>
+    <lastmod>2017-10-15T18:45:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/devops/</loc>
+    <lastmod>2017-10-15T18:45:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/immutable-servers-packer-ansible-terraform/</loc>
+    <lastmod>2017-10-15T18:45:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/infrastructure/</loc>
+    <lastmod>2017-10-15T18:45:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/packer/</loc>
+    <lastmod>2017-10-15T18:45:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/terraform/</loc>
+    <lastmod>2017-10-15T18:45:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/elasticsearch/</loc>
+    <lastmod>2017-08-20T19:30:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/mysql/</loc>
+    <lastmod>2017-08-20T19:30:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/elasticsearch-read-model-from-replica/</loc>
+    <lastmod>2017-08-20T19:30:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/blog/invoice-fan-out-sqs/</loc>
+    <lastmod>2017-06-11T20:10:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/laravel/</loc>
+    <lastmod>2017-06-11T20:10:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/redis/</loc>
+    <lastmod>2017-06-11T20:10:00+02:00</lastmod>
+  </url><url>
+    <loc>https://miloradbozic.github.io/tags/sqs/</loc>
+    <lastmod>2017-06-11T20:10:00+02:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/tags/integrations/</loc>
     <lastmod>2017-04-09T18:40:00+02:00</lastmod>
@@ -17,16 +77,10 @@
     <loc>https://miloradbozic.github.io/blog/oauth2-token-keepalive-laravel-scheduler/</loc>
     <lastmod>2017-04-09T18:40:00+02:00</lastmod>
   </url><url>
-    <loc>https://miloradbozic.github.io/tags/laravel/</loc>
-    <lastmod>2017-04-09T18:40:00+02:00</lastmod>
-  </url><url>
     <loc>https://miloradbozic.github.io/tags/oauth2/</loc>
     <lastmod>2017-04-09T18:40:00+02:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/tags/php/</loc>
-    <lastmod>2017-04-09T18:40:00+02:00</lastmod>
-  </url><url>
-    <loc>https://miloradbozic.github.io/tags/</loc>
     <lastmod>2017-04-09T18:40:00+02:00</lastmod>
   </url><url>
     <loc>https://miloradbozic.github.io/tags/upgrade/</loc>

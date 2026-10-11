@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>infrastructure on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/infrastructure/</link>
+    <description>Recent content in infrastructure on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 15 Oct 2017 18:45:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/infrastructure/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Immutable servers with Packer, Ansible and Terraform</title>
+      <link>https://miloradbozic.github.io/blog/immutable-servers-packer-ansible-terraform/</link>
+      <pubDate>Sun, 15 Oct 2017 18:45:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/immutable-servers-packer-ansible-terraform/</guid>
+      <description>Over the past months I spent a lot of my time on the operations side at work. The main change was going from servers that we configure in place to servers that we never change after they start. If something needs to change, we build a new image and replace the server.
+Here&amp;rsquo;s how the pieces fit, because the hardest part for me was not learning each tool but understanding where one stops and the next one starts.</description>
+    </item>
+    
+  </channel>
+</rss>

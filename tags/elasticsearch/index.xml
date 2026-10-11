@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>elasticsearch on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/elasticsearch/</link>
+    <description>Recent content in elasticsearch on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 20 Aug 2017 19:30:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/elasticsearch/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Our first step out of the monolith was a read model</title>
+      <link>https://miloradbozic.github.io/blog/elasticsearch-read-model-from-replica/</link>
+      <pubDate>Sun, 20 Aug 2017 19:30:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/elasticsearch-read-model-from-replica/</guid>
+      <description>When people talk about breaking up a monolith, the first picture is usually &amp;ldquo;take the payments code, put it in its own service with its own database&amp;rdquo;. We haven&amp;rsquo;t done that yet. What we did first was less dramatic and, I think, the right first step: we took one read path out of the main database.
+The problem Our back-office tool lets people search customers and contracts by name, address, ID document, supply point code, partial phone number and a few other things, in any combination.</description>
+    </item>
+    
+  </channel>
+</rss>

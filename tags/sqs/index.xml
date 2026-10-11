@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>sqs on Milorad Bozic</title>
+    <link>https://miloradbozic.github.io/tags/sqs/</link>
+    <description>Recent content in sqs on Milorad Bozic</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 11 Jun 2017 20:10:00 +0200</lastBuildDate><atom:link href="https://miloradbozic.github.io/tags/sqs/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>From a day to an hour: fanning out invoice work over SQS</title>
+      <link>https://miloradbozic.github.io/blog/invoice-fan-out-sqs/</link>
+      <pubDate>Sun, 11 Jun 2017 20:10:00 +0200</pubDate>
+      
+      <guid>https://miloradbozic.github.io/blog/invoice-fan-out-sqs/</guid>
+      <description>Every billing cycle we have to process invoices for all of our customers: pull them from the ERP, store them, make them visible in the customer area, and keep the related contracts in sync. For a long time this was one big job that went through the invoices one by one. It took about a day. The worst part was not the duration, it was what happened when it failed at 70%: figure out where it stopped, fix the data, start again, hope.</description>
+    </item>
+    
+  </channel>
+</rss>

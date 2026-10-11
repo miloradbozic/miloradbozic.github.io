@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Milorad Bozic">
+    <link rel="shortcut icon" type="image/x-icon" href="https://miloradbozic.github.io/img/favicon.ico">
+    <title>From a day to an hour: fanning out invoice work over SQS | Milorad Bozic</title>
+    <meta name="description" content="Turning a sequential batch job into many small idempotent jobs, and what at-least-once delivery means in practice">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    
+    <link rel="preload stylesheet" href="/css/main.min.css" as="style">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old">
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+  </head>
+  <body>
+    <div id="content">
+  
+  <div class="container mb-3">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="https://miloradbozic.github.io/">
+        <i class="fa fa-home"></i>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar">
+        <i class="fa fa-bars"></i>
+      </button>
+
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/blog/">BLOG</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/projects/">PROJECTS</a></li>
+              </li>
+            
+              <li class="nav-item">
+                <li><a class="nav-link" href="/resume/">RESUME</a></li>
+              </li>
+            
+          
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+  <div class="container">
+    <h3 class="mt-3"><b><a href="https://miloradbozic.github.io/blog/invoice-fan-out-sqs/">From a day to an hour: fanning out invoice work over SQS</a></b></h3>
+    <div class="blog-title my-4">
+      <h6>
+        June 11, 2017
+        &nbsp;&nbsp;
+        
+          <span class="badge bg-success">distributed-systems</span>
+        
+          <span class="badge bg-success">aws</span>
+        
+          <span class="badge bg-success">sqs</span>
+        
+          <span class="badge bg-success">redis</span>
+        
+          <span class="badge bg-success">laravel</span>
+        
+      </h6>
+    </div>
+    <div class="panel">
+      <div class="panel-body">
+        <div class="blogpost">
+          <p>Every billing cycle we have to process invoices for all of our customers: pull them from the ERP,
+store them, make them visible in the customer area, and keep the related contracts in sync. For a
+long time this was one big job that went through the invoices one by one. It took about a day.
+The worst part was not the duration, it was what happened when it failed at 70%: figure out where
+it stopped, fix the data, start again, hope.</p>
+<p>Now the same work finishes in one or two hours, and a failure in the middle is a non-event. The
+code change was smaller than I expected. The change in how we think about the job was bigger.</p>
+<h2 id="one-big-loop--many-small-jobs">One big loop → many small jobs</h2>
+<p>The old shape was:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#66d9ef">foreach</span> ($invoices <span style="color:#66d9ef">as</span> $invoice) {
+</span></span><span style="display:flex;"><span>    $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">syncContractsFor</span>($invoice);   <span style="color:#75715e">// SOAP calls to the ERP
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">syncInvoice</span>($invoice);        <span style="color:#75715e">// more SOAP calls
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p>Almost all of the time is spent waiting on the ERP. The CPU does nothing. That&rsquo;s the definition
+of work that should run in parallel.</p>
+<p>The new shape has two parts. A <strong>dispatcher</strong> walks the invoices and puts one message per invoice
+on an SQS queue:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span>$this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">invoices</span><span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">toProcess</span>()<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">chunk</span>(<span style="color:#ae81ff">10000</span>, <span style="color:#66d9ef">function</span> ($invoices) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">foreach</span> ($invoices <span style="color:#66d9ef">as</span> $invoice) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">dispatch</span>(
+</span></span><span style="display:flex;"><span>            (<span style="color:#66d9ef">new</span> <span style="color:#a6e22e">SyncInvoice</span>($invoice<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">cycle</span>, $invoice<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">number</span>, $invoice<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">contracts</span>))
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">onConnection</span>(<span style="color:#e6db74">&#39;sqs&#39;</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">onQueue</span>(<span style="color:#a6e22e">config</span>(<span style="color:#e6db74">&#39;queues.invoices&#39;</span>))
+</span></span><span style="display:flex;"><span>        );
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>});
+</span></span></code></pre></div><p>And a pool of <strong>workers</strong> (plain <code>php artisan queue:work</code> processes on a few instances) each pick
+messages and do the work for exactly one invoice. Want it faster? Add workers, up to the point
+where the ERP starts to complain. That ERP limit, not our code, is now the real bottleneck, and
+it&rsquo;s a much better problem to have.</p>
+<p><code>chunk()</code> matters for the dispatcher: loading a few hundred thousand Eloquent models at once is
+a great way to meet the PHP memory limit.</p>
+<h2 id="at-least-once-means-sometimes-twice">At-least-once means &ldquo;sometimes twice&rdquo;</h2>
+<p>This is the part that is easy to read in the SQS docs and easy to forget in code. A standard SQS
+queue guarantees <strong>at-least-once</strong> delivery. The same message can be delivered to two workers. And
+if a worker takes longer than the queue&rsquo;s <em>visibility timeout</em>, SQS assumes it died and gives the
+message to someone else, while the first worker is still happily working.</p>
+<p>So every job must be safe to run twice. Two ways to get there, and we use both.</p>
+<p><strong>1. Make the work itself idempotent.</strong> Syncing an invoice is an upsert by invoice number, not an
+insert. Running it twice leaves the same row. This is the real protection.</p>
+<p><strong>2. Cheap dedupe in front of it.</strong> Running the same invoice twice in parallel is still wasted ERP
+calls, and two concurrent upserts of the same rows can deadlock in MySQL. So before doing anything,
+the job claims the invoice in Redis:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-php" data-lang="php"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">function</span> <span style="color:#a6e22e">handle</span>(<span style="color:#a6e22e">InvoiceSync</span> $sync)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    $key <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;invoice:&#39;</span> <span style="color:#f92672">.</span> $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">cycle</span> <span style="color:#f92672">.</span> <span style="color:#a6e22e">str_pad</span>($this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">number</span>, <span style="color:#ae81ff">8</span>, <span style="color:#e6db74">&#39;0&#39;</span>, <span style="color:#a6e22e">STR_PAD_LEFT</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// SET key 1 NX EX 7200: only succeeds if nobody else holds it
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span> <span style="color:#a6e22e">Redis</span><span style="color:#f92672">::</span><span style="color:#a6e22e">set</span>($key, <span style="color:#ae81ff">1</span>, <span style="color:#e6db74">&#39;NX&#39;</span>, <span style="color:#e6db74">&#39;EX&#39;</span>, <span style="color:#ae81ff">7200</span>)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span>; <span style="color:#75715e">// someone else has it, or did it recently
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>        $sync<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">contractsFor</span>($this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">contracts</span>);
+</span></span><span style="display:flex;"><span>        $sync<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">invoice</span>($this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">cycle</span>, $this<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">number</span>);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">catch</span> (<span style="color:#a6e22e">\Exception</span> $e) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Redis</span><span style="color:#f92672">::</span><span style="color:#a6e22e">del</span>($key);   <span style="color:#75715e">// let a retry try again
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">throw</span> $e;           <span style="color:#75715e">// and let the queue retry it
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>SET ... NX EX</code> is atomic, so two workers can&rsquo;t both win. If the job fails, we release the key and
+rethrow, so the queue&rsquo;s normal retry picks it up. If the worker dies hard (OOM, instance gone), the
+key expires on its own after two hours.</p>
+<h2 id="things-that-bit-us">Things that bit us</h2>
+<ul>
+<li><strong>Visibility timeout shorter than the slowest job.</strong> Some invoices have dozens of contracts and
+take minutes. With the default timeout they were delivered again while still running. Set the
+visibility timeout above your worst case, not your average.</li>
+<li><strong>The lock TTL is also a &ldquo;don&rsquo;t redo&rdquo; window.</strong> After a <em>successful</em> run the key stays for two
+hours, so re-running the sync for the same invoice inside that window silently does nothing. For
+a nightly batch that&rsquo;s what we want. For the &ldquo;re-sync this one customer now&rdquo; button in the
+back-office it wasn&rsquo;t, and that one now deletes the key first. Know which semantics you picked.</li>
+<li><strong>Poison messages.</strong> An invoice with broken data in the ERP fails every time. Without a limit it
+goes round forever and burns ERP calls. A redrive policy to a dead-letter queue after a few
+attempts, plus a command that lists what&rsquo;s in the DLQ, turned that into a short daily review.</li>
+<li><strong>Progress is no longer a log line.</strong> With one loop, &ldquo;invoice 51234 of 98000&rdquo; told you where you
+were. With a queue you look at the queue depth (<code>ApproximateNumberOfMessages</code>) and the DLQ
+instead. We put both on a dashboard.</li>
+</ul>
+<h2 id="the-real-win">The real win</h2>
+<p>Duration went from about a day to an hour or two, which is nice. But the actual improvement is
+that the unit of failure went from &ldquo;the whole batch&rdquo; to &ldquo;one invoice&rdquo;. A failure no longer means
+someone spends the morning restarting a job. It means one message in a dead-letter queue, with
+the invoice number on it.</p>
+<p>That idea, small independent units of work that are safe to repeat, is something I&rsquo;m starting to
+see everywhere now.</p>
+
+          
+          
+            <div class="related-posts mt-4 py-3">
+              <h5>Related Posts</h5>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      April 9, 2017
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/oauth2-token-keepalive-laravel-scheduler/">Keeping an OAuth2 integration alive with the Laravel scheduler</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      February 26, 2017
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/laravel-53-upgrade-lists-pluck/">Upgrading to Laravel 5.3: where did lists() go?</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+                <div class="row">
+                  <div class="col-4">
+                    <h6 style="text-align: right">
+                      January 15, 2017
+                    </h6>
+                  </div>
+                  <div class="col-8">
+                    <h6 style="text-align: left">
+                      <b><a href="/blog/redsys-card-payments-lessons/">Card payments with Redsys: trust the notification, not the redirect</a></b>
+                    </h6>
+                  </div>
+                </div>
+              
+            </div>
+          
+        </div>
+      </div>
+      <div class="disqus">
+        
+      </div>
+    </div>
+  </div>
+
+    </div>
+    
+    <footer class="footer">
+  <div class="container">
+    <div class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+    <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.min.js" integrity="sha384-nsg8ua9HAw1y0W1btsyWgBklPnCUAFLuTMS2G72MMONqmOymq585AcH49TLBQObG" crossorigin="anonymous"></script>
+
+  </body>
+</html>
